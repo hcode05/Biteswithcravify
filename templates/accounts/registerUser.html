@@ -1,4 +1,5 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %} 
+{% block content %}
 
 <!-- Main Section Start -->
 <div class="main-section">
@@ -26,12 +27,8 @@
               <hr />
 
               <div id="restaurant-sets-holder">
-                <form
-                  action="{% url 'registerUser' %}"
-                  class="form-fields-set foodbakery-dev-restaurant-form"
-                  method="post"
-                >
-                  {% csrf_token %}
+                <form action="{% url 'registerUser' %}" method="post" class="form-fields-set foodbakery-dev-restaurant-form">
+  {% csrf_token %}
 
                   <ul
                     class="register-add-restaurant-tab-container restaurant-information-tab-container"

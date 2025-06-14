@@ -63,6 +63,7 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
+                "django.template.context_processors.csrf",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
@@ -140,3 +141,8 @@ from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
   messages.ERROR: 'danger',
 }
+
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailAuthBackend',         # your custom email backend
+    'django.contrib.auth.backends.ModelBackend',  # default username-based
+]
