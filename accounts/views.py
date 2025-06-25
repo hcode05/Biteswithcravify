@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required,user_passes_test
 from django.core.exceptions import PermissionDenied
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
-
+from vendor.models import Vendor
 
 # Restrict the vendor from accessing the customer page
 def check_role_vendor(user):
@@ -124,7 +124,7 @@ def login(request):
     else:
         if request.user.is_authenticated:
             return redirect('myAccount')
-    return render (request, 'accounts/login.html')
+    return render (request, 'accounts/login.html',{})
 
 def logout(request):
     auth.logout(request)
@@ -139,12 +139,13 @@ def myAccount(request):
 @login_required(login_url='login')
 @user_passes_test(check_role_customer)
 def custdashboard(request):
-    return render(request, 'accounts/custdashboard.html')
+    return render(request, 'accounts/custDashboard.html')
 
 @login_required(login_url='login')
 @user_passes_test(check_role_vendor)
 def vendordashboard(request):
-    return render(request, 'accounts/vendordashboard.html')
+    vendor = Vendor.objects.get(user=request.user)
+    return render(request, 'accounts/vendorDashboard.html')
 
 def forgot_password(request):
     if request.method == 'POST':
