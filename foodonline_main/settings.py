@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'accounts',
     'vendor',
     'menu',
+    'marketplace',
 ]
 
 MIDDLEWARE = [
@@ -67,7 +68,10 @@ TEMPLATES = [
                 "django.template.context_processors.csrf",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "accounts.context_processors.get_vendor",  
+                "accounts.context_processors.get_vendor", 
+                "accounts.context_processors.get_user_profile",
+                "marketplace.context_processors.get_cart_counter",
+                "marketplace.context_processors.get_cart_amounts",    
             ],
         },
     },
@@ -148,11 +152,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST')                # smtp.gmail.com
 EMAIL_PORT = config('EMAIL_PORT', cast=int)      # 587
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')      # your email
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'foodOnline Marketplace <django.foodonline@gmail.com>'
-
-# Fix Django admin static files when DEBUG is True or False
-from django.conf import settings
-from django.conf.urls.static import static
+DEFAULT_FROM_EMAIL = 'foodOnline Marketplace <django.foodonline5114@gmail.com>'

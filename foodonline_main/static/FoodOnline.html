@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- saved from url=(0046)http://127.0.0.1:8000/accounts/vendor/profile/ -->
-<html lang="en" style="" class=" js flexbox canvas canvastext webgl no-touch geolocation postmessage no-websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers no-applicationcache svg inlinesvg smil svgclippaths"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="en"  class=" js flexbox canvas canvastext webgl no-touch geolocation postmessage no-websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers no-applicationcache svg inlinesvg smil svgclippaths"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -229,7 +229,7 @@
 											<div>
 												<div class="field-holder">
 													<div class="payment-holder input-button-loader">
-														<input class="update-restaurant" type="submit" value="Update Restaurant" onclick="location.href=&#39;restaurant-location.html&#39;;">
+														<input class="update-restaurant" type="submit" value="Update Restaurant" onclick="location.href='restaurant-location.html';">
 													</div>
 												</div>
 											</div>
@@ -299,10 +299,10 @@
     
 
     <!-- Modal Popup End -->
-    <script src="./FoodOnline_files/scripts.js.download"></script>
-    <script src="./FoodOnline_files/functions.js.download"></script>
+    
+  <script src="{% static 'js/scripts.js' %}"></script>
+  <script src="{% static 'js/functions.js' %}"></script>
+  <script src="{% static 'js/custom.js' %}"></script>
   
-
-
-  
-</body></html>
+</body>
+</html>

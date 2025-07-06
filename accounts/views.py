@@ -10,6 +10,7 @@ from django.core.exceptions import PermissionDenied
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from vendor.models import Vendor
+from django.template.defaultfilters import slugify
 
 # Restrict the vendor from accessing the customer page
 def check_role_vendor(user):
@@ -66,6 +67,8 @@ def registerVendor(request):
             vendor = v_form.save(commit=False)
             vendor.user = user
             vendor_name = v_form.cleaned_data['vendor_name']
+            vendor.vendor_slug = slugify(vendor_name)+'-'+str(user.id)
+            vendor_name = v_form.cleaned_data['vendor_name']
             user_profile = UserProfile.objects.get(user=user)
             vendor.user_profile = user_profile
             vendor.save()
@@ -104,12 +107,11 @@ def activate(request, uidb64, token):
         messages.error(request, 'Invalid activation link')
         return redirect('myAccount')
         
-
 def login(request):
     if request.user.is_authenticated:
-        messages.warning(request, 'You are already logged in!')
-        return redirect('myAccount')
-    elif request.method == 'POST':
+        return redirect('myAccount')  # 🚫 Do not show message again here
+
+    if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
         user = auth.authenticate(email=email, password=password)  
@@ -121,15 +123,15 @@ def login(request):
         else:
             messages.error(request, 'Invalid username or password')
             return redirect('login')
-    else:
-        if request.user.is_authenticated:
-            return redirect('myAccount')
-    return render (request, 'accounts/login.html',{})
+
+    return render(request, 'accounts/login.html', {})
+
 
 def logout(request):
     auth.logout(request)
     messages.info(request, 'You are logged out.')
     return redirect('login')
+
 @login_required(login_url='login')
 def myAccount(request):
     user = request.user
