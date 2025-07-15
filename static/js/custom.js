@@ -214,4 +214,130 @@ $(document).ready(function(){
             $('#tax-total').html(total_tax.toFixed(2));
         }
     }
+     // ADD OPENING HOUR
+    $('.add_hour').on('click', function(e){
+        e.preventDefault();
+        var day = document.getElementById('id_day').value
+        var from_hour = document.getElementById('id_from_hour').value
+        var to_hour = document.getElementById('id_to_hour').value
+        var is_closed = document.getElementById('id_is_closed').checked
+        var csrf_token = $('input[name=csrfmiddlewaretoken]').val()
+        var url = document.getElementById('add_hour_url').value
+
+        console.log(day, from_hour, to_hour, is_closed, csrf_token, url)
+
+        // Day name mapping
+        const dayNames = {
+            '1': 'Monday',
+            '2': 'Tuesday', 
+            '3': 'Wednesday',
+            '4': 'Thursday',
+            '5': 'Friday',
+            '6': 'Saturday',
+            '7': 'Sunday'
+        };
+
+        if(is_closed){
+            is_closed = 'True'
+            condition = "day != ''"
+        }else{
+            is_closed = 'False'
+            condition = "day != '' && from_hour != '' && to_hour != ''"
+        }
+
+        if(eval(condition)){
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: {
+                    'day': day,
+                    'from_hour': from_hour,
+                    'to_hour': to_hour,
+                    'is_closed': is_closed,
+                    'csrfmiddlewaretoken': csrf_token,
+                },
+                success: function(response){
+                    console.log('Response:', response);
+                    if(response.status == 'success'){
+                        // Use the day name from our mapping instead of response.day
+                        var dayName = dayNames[day] || response.day;
+                        
+                        if(response.is_closed == 'Closed'){
+                            html = '<tr id="hour-'+response.id+'"><td>'+dayName+'</td><td>Closed</td><td><a href="#" class="remove_hour text-primary" data-url="/vendor/opening-hours/remove/'+response.id+'/" style="color: #007bff; text-decoration: none;">Remove</a></td></tr>';
+                        }else{
+                            html = '<tr id="hour-'+response.id+'"><td>'+dayName+'</td><td>'+response.from_hour+' - '+response.to_hour+'</td><td><a href="#" class="remove_hour text-primary" data-url="/vendor/opening-hours/remove/'+response.id+'/" style="color: #007bff; text-decoration: none;">Remove</a></td></tr>';
+                        }
+                        
+                        $(".opening_hours tbody").append(html);
+                        document.getElementById("opening_hours").reset();
+                        
+                        // Show success message
+                        if(typeof swal !== 'undefined'){
+                            swal('Success', 'Opening hour added successfully!', 'success');
+                        } else {
+                            alert('Opening hour added successfully!');
+                        }
+                    }else{
+                        if(typeof swal !== 'undefined'){
+                            swal(response.message, '', "error");
+                        } else {
+                            alert(response.message || 'Error adding opening hour');
+                        }
+                    }
+                },
+                error: function(xhr, status, error){
+                    console.error('AJAX Error:', xhr.responseText);
+                    if(typeof swal !== 'undefined'){
+                        swal('Error', 'Failed to add opening hour. Please try again.', 'error');
+                    } else {
+                        alert('Failed to add opening hour. Please try again.');
+                    }
+                }
+            })
+        }else{
+            if(typeof swal !== 'undefined'){
+                swal('Please fill all fields', '', 'info');
+            } else {
+                alert('Please fill all fields');
+            }
+        }
+    });
+
+    // REMOVE OPENING HOUR
+    $(document).on('click', '.remove_hour', function(e){
+        e.preventDefault();
+        url = $(this).attr('data-url');
+        
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(response){
+                console.log('Remove response:', response);
+                if(response.status == 'success'){
+                    document.getElementById('hour-'+response.id).remove();
+                    if(typeof swal !== 'undefined'){
+                        swal('Success', 'Opening hour removed successfully!', 'success');
+                    } else {
+                        alert('Opening hour removed successfully!');
+                    }
+                } else {
+                    if(typeof swal !== 'undefined'){
+                        swal('Error', response.message || 'Failed to remove opening hour', 'error');
+                    } else {
+                        alert(response.message || 'Failed to remove opening hour');
+                    }
+                }
+            },
+            error: function(xhr, status, error){
+                console.error('AJAX Error:', xhr.responseText);
+                if(typeof swal !== 'undefined'){
+                    swal('Error', 'Failed to remove opening hour. Please try again.', 'error');
+                } else {
+                    alert('Failed to remove opening hour. Please try again.');
+                }
+            }
+        })
+    })
+    // document ready close 
+    
 });

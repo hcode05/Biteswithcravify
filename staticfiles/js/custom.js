@@ -72,72 +72,146 @@ function onPlaceChanged (){
 }
 
 $(document).ready(function(){
-    // add to cart
+
+    // ADD TO CART
     $('.add_to_cart').on('click', function(e){
         e.preventDefault();
         
-        food_id = $(this).attr('data-id');
-        url = $(this).attr('data-url');
-        
-       
+        let food_id = $(this).attr('data-id');
+        let url = $(this).attr('data-url');
+
         $.ajax({
             type: 'GET',
             url: url,
             success: function(response){
-                console.log(response)
+                console.log(response);
                 if(response.status == 'login_required'){
                     swal(response.message, '', 'info').then(function(){
                         window.location = '/login';
-                    })
-                }else if(response.status == 'Failed'){
-                    swal(response.message, '', 'error')
-                }else{
+                    });
+                } else if(response.status == 'Failed'){
+                    swal(response.message, '', 'error');
+                } else {
                     $('#cart_counter').html(response.cart_counter['cart_count']);
-                    $('#qty-'+food_id).html(response.qty);
+                    $('#qty-' + food_id).html(response.qty);
+
+                    applyCartAmounts(
+                        response.cart_amount['subtotal'],
+                        response.cart_amount['tax_dict'],
+                        response.cart_amount['grand_total']
+                    );
                 }
             }
-        })
-    })
+        });
+    });
 
-
-    // place the cart item quantity on load
+    // PLACE ITEM QTY ON LOAD
     $('.item_qty').each(function(){
-        var the_id = $(this).attr('id')
-        var qty = $(this).attr('data-qty')
-        $('#'+the_id).html(qty)
-    })
+        let the_id = $(this).attr('id');
+        let qty = $(this).attr('data-qty');
+        $('#' + the_id).html(qty);
+    });
 
-     // decrease cart
+    // DECREASE CART
     $('.decrease_cart').on('click', function(e){
         e.preventDefault();
-        
-        food_id = $(this).attr('data-id');
-        url = $(this).attr('data-url');
-        cart_id = $(this).attr('id');
-        
-        
+
+        let food_id = $(this).attr('data-id');
+        let url = $(this).attr('data-url');
+        let cart_id = $(this).attr('id');
+
         $.ajax({
             type: 'GET',
             url: url,
             success: function(response){
-                console.log(response)
+                console.log(response);
                 if(response.status == 'login_required'){
                     swal(response.message, '', 'info').then(function(){
                         window.location = '/login';
-                    })
-                }else if(response.status == 'Failed'){
-                    swal(response.message, '', 'error')
-                }else{
+                    });
+                } else if(response.status == 'Failed'){
+                    swal(response.message, '', 'error');
+                } else {
                     $('#cart_counter').html(response.cart_counter['cart_count']);
-                    $('#qty-'+food_id).html(response.qty);
+                    $('#qty-' + food_id).html(response.qty);
 
                     if(window.location.pathname == '/cart/'){
                         removeCartItem(response.qty, cart_id);
                         checkEmptyCart();
+
+                        applyCartAmounts(
+                            response.cart_amount['subtotal'],
+                            response.cart_amount['tax_dict'],
+                            response.cart_amount['grand_total']
+                        );
                     }
-                    
-                } 
+                }
             }
-        })
-    })
+        });
+    });
+
+    // DELETE CART ITEM
+    $('.delete_cart').on('click', function(e){
+        e.preventDefault();
+
+        let cart_id = $(this).attr('data-id');
+        let url = $(this).attr('data-url');
+
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(response){
+                console.log(response);
+                if(response.status == 'Failed'){
+                    swal(response.message, '', 'error');
+                } else {
+                    $('#cart_counter').html(response.cart_counter['cart_count']);
+                    swal(response.status, response.message, "success");
+
+                    applyCartAmounts(
+                        response.cart_amount['subtotal'],
+                        response.cart_amount['tax_dict'],
+                        response.cart_amount['grand_total']
+                    );
+
+                    removeCartItem(0, cart_id);
+                    checkEmptyCart();
+                }
+            }
+        });
+    });
+
+    // REMOVE ITEM IF QTY IS 0
+    function removeCartItem(cartItemQty, cart_id){
+        if(cartItemQty <= 0){
+            document.getElementById("cart-item-" + cart_id).remove();
+        }
+    }
+
+    // CHECK IF CART IS EMPTY
+    function checkEmptyCart(){
+        let cart_counter = document.getElementById('cart_counter').innerHTML;
+        if(cart_counter == 0){
+            document.getElementById("empty-cart").style.display = "block";
+        }
+    }
+
+    // APPLY CART AMOUNTS (Subtotal, Tax, Grand Total)
+    function applyCartAmounts(subtotal, tax_dict, grand_total){
+        if(window.location.pathname == '/cart/'){
+            $('#subtotal').html(subtotal);
+            $('#total').html(grand_total);
+
+            // calculate total tax from tax_dict and update tax-total span
+            let total_tax = 0;
+            for(let key in tax_dict){
+                for(let percent in tax_dict[key]){
+                    total_tax += parseFloat(tax_dict[key][percent]);
+                }
+            }
+
+            // ✅ update only the span that already exists in the template
+            $('#tax-total').html(total_tax.toFixed(2));
+        }
+    }
 });

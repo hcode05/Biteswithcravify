@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     'vendor',
     'menu',
     'marketplace',
+    'django.contrib.gis',  
 ]
 
 MIDDLEWARE = [
@@ -54,6 +56,12 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# CSRF Settings
+CSRF_USE_SESSIONS = True
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_HTTPONLY = False
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000']
 
 ROOT_URLCONF = "foodonline_main.urls"
 
@@ -85,7 +93,8 @@ WSGI_APPLICATION = "foodonline_main.wsgi.application"
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        # 'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',  
         'NAME': config('DB_NAME'),       
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
@@ -93,6 +102,11 @@ DATABASES = {
         'PORT': config('DB_PORT'),
     }
 }
+
+# CSRF Settings
+CSRF_USE_SESSIONS = True
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_HTTPONLY = True
 
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -156,3 +170,8 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'foodOnline Marketplace <django.foodonline5114@gmail.com>'
+
+os.environ['PROJ_LIB'] = r"C:\Users\ADMIN\Desktop\foodproject\env\Lib\site-packages\osgeo\data\proj"
+os.environ['PATH'] += r";C:\Users\ADMIN\Desktop\foodproject\env\Lib\site-packages\osgeo"
+GDAL_LIBRARY_PATH = r"C:\Users\ADMIN\Desktop\foodproject\env\Lib\site-packages\osgeo\gdal304.dll"
+GEOS_LIBRARY_PATH = r"C:\Users\ADMIN\Desktop\foodproject\env\Lib\site-packages\osgeo\geos_c.dll"

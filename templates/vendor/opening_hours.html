@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+{% include 'includes/alerts.html' %}
+
+<!-- Custom CSS for Opening Hours -->
+<style>
+.opening_hours th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+    padding: 12px 8px;
+}
+.opening_hours td {
+    padding: 10px 8px;
+    vertical-align: middle;
+}
+.opening_hours .remove_hour {
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+.opening_hours .remove_hour:hover {
+    color: #0056b3 !important;
+    text-decoration: underline !important;
+}
+</style>
+
+<!-- Main Section Start -->
+<div class="main-section">
+    {% include 'includes/cover.html' %}
+    <div class="page-section account-header buyer-logged-in">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                    <!-- Load the sidebar here -->
+                    {% include 'includes/v_sidebar.html' %}
+                </div>
+                <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+                    <div class="user-dashboard loader-holder">
+                        <div class="user-holder">
+                            <h5 class="text-uppercase">Opening Hours</h5>
+							<hr>
+                          
+                            <table class="table opening_hours" style="width: 500px; border: none !important;">
+                                <thead>
+                                    <tr>
+                                        <th>Day</th>
+                                        <th>Hours</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for hour in opening_hours %}
+                                        <tr id="hour-{{hour.id}}">
+                                            <td>{{ hour.get_day_display }}</td>
+                                            <td>{% if hour.is_closed %}Closed{% else %}{{ hour.from_hour }} - {{ hour.to_hour }}{% endif %}</td>
+                                            <td><a href="#" class="remove_hour text-primary" data-url="{% url 'remove_opening_hours' hour.id %}" style="color: #007bff; text-decoration: none;">Remove</a></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+
+                            <br>
+
+                            <form id="opening_hours" method="post" autocomplete="off">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <select id="id_day" name="day" class="form-control">
+                                            <option value="">Select Day</option>
+                                            <option value="1">Monday</option>
+                                            <option value="2">Tuesday</option>
+                                            <option value="3">Wednesday</option>
+                                            <option value="4">Thursday</option>
+                                            <option value="5">Friday</option>
+                                            <option value="6">Saturday</option>
+                                            <option value="7">Sunday</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select id="id_from_hour" name="from_hour" class="form-control">
+                                            <option value="">From Hour</option>
+                                            <option value="12:00 AM">12:00 AM</option>
+                                            <option value="12:30 AM">12:30 AM</option>
+                                            <option value="01:00 AM">01:00 AM</option>
+                                            <option value="01:30 AM">01:30 AM</option>
+                                            <option value="02:00 AM">02:00 AM</option>
+                                            <option value="02:30 AM">02:30 AM</option>
+                                            <option value="03:00 AM">03:00 AM</option>
+                                            <option value="03:30 AM">03:30 AM</option>
+                                            <option value="04:00 AM">04:00 AM</option>
+                                            <option value="04:30 AM">04:30 AM</option>
+                                            <option value="05:00 AM">05:00 AM</option>
+                                            <option value="05:30 AM">05:30 AM</option>
+                                            <option value="06:00 AM">06:00 AM</option>
+                                            <option value="06:30 AM">06:30 AM</option>
+                                            <option value="07:00 AM">07:00 AM</option>
+                                            <option value="07:30 AM">07:30 AM</option>
+                                            <option value="08:00 AM">08:00 AM</option>
+                                            <option value="08:30 AM">08:30 AM</option>
+                                            <option value="09:00 AM">09:00 AM</option>
+                                            <option value="09:30 AM">09:30 AM</option>
+                                            <option value="10:00 AM">10:00 AM</option>
+                                            <option value="10:30 AM">10:30 AM</option>
+                                            <option value="11:00 AM">11:00 AM</option>
+                                            <option value="11:30 AM">11:30 AM</option>
+                                            <option value="12:00 PM">12:00 PM</option>
+                                            <option value="12:30 PM">12:30 PM</option>
+                                            <option value="01:00 PM">01:00 PM</option>
+                                            <option value="01:30 PM">01:30 PM</option>
+                                            <option value="02:00 PM">02:00 PM</option>
+                                            <option value="02:30 PM">02:30 PM</option>
+                                            <option value="03:00 PM">03:00 PM</option>
+                                            <option value="03:30 PM">03:30 PM</option>
+                                            <option value="04:00 PM">04:00 PM</option>
+                                            <option value="04:30 PM">04:30 PM</option>
+                                            <option value="05:00 PM">05:00 PM</option>
+                                            <option value="05:30 PM">05:30 PM</option>
+                                            <option value="06:00 PM">06:00 PM</option>
+                                            <option value="06:30 PM">06:30 PM</option>
+                                            <option value="07:00 PM">07:00 PM</option>
+                                            <option value="07:30 PM">07:30 PM</option>
+                                            <option value="08:00 PM">08:00 PM</option>
+                                            <option value="08:30 PM">08:30 PM</option>
+                                            <option value="09:00 PM">09:00 PM</option>
+                                            <option value="09:30 PM">09:30 PM</option>
+                                            <option value="10:00 PM">10:00 PM</option>
+                                            <option value="10:30 PM">10:30 PM</option>
+                                            <option value="11:00 PM">11:00 PM</option>
+                                            <option value="11:30 PM">11:30 PM</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select id="id_to_hour" name="to_hour" class="form-control">
+                                            <option value="">To Hour</option>
+                                            <option value="12:00 AM">12:00 AM</option>
+                                            <option value="12:30 AM">12:30 AM</option>
+                                            <option value="01:00 AM">01:00 AM</option>
+                                            <option value="01:30 AM">01:30 AM</option>
+                                            <option value="02:00 AM">02:00 AM</option>
+                                            <option value="02:30 AM">02:30 AM</option>
+                                            <option value="03:00 AM">03:00 AM</option>
+                                            <option value="03:30 AM">03:30 AM</option>
+                                            <option value="04:00 AM">04:00 AM</option>
+                                            <option value="04:30 AM">04:30 AM</option>
+                                            <option value="05:00 AM">05:00 AM</option>
+                                            <option value="05:30 AM">05:30 AM</option>
+                                            <option value="06:00 AM">06:00 AM</option>
+                                            <option value="06:30 AM">06:30 AM</option>
+                                            <option value="07:00 AM">07:00 AM</option>
+                                            <option value="07:30 AM">07:30 AM</option>
+                                            <option value="08:00 AM">08:00 AM</option>
+                                            <option value="08:30 AM">08:30 AM</option>
+                                            <option value="09:00 AM">09:00 AM</option>
+                                            <option value="09:30 AM">09:30 AM</option>
+                                            <option value="10:00 AM">10:00 AM</option>
+                                            <option value="10:30 AM">10:30 AM</option>
+                                            <option value="11:00 AM">11:00 AM</option>
+                                            <option value="11:30 AM">11:30 AM</option>
+                                            <option value="12:00 PM">12:00 PM</option>
+                                            <option value="12:30 PM">12:30 PM</option>
+                                            <option value="01:00 PM">01:00 PM</option>
+                                            <option value="01:30 PM">01:30 PM</option>
+                                            <option value="02:00 PM">02:00 PM</option>
+                                            <option value="02:30 PM">02:30 PM</option>
+                                            <option value="03:00 PM">03:00 PM</option>
+                                            <option value="03:30 PM">03:30 PM</option>
+                                            <option value="04:00 PM">04:00 PM</option>
+                                            <option value="04:30 PM">04:30 PM</option>
+                                            <option value="05:00 PM">05:00 PM</option>
+                                            <option value="05:30 PM">05:30 PM</option>
+                                            <option value="06:00 PM">06:00 PM</option>
+                                            <option value="06:30 PM">06:30 PM</option>
+                                            <option value="07:00 PM">07:00 PM</option>
+                                            <option value="07:30 PM">07:30 PM</option>
+                                            <option value="08:00 PM">08:00 PM</option>
+                                            <option value="08:30 PM">08:30 PM</option>
+                                            <option value="09:00 PM">09:00 PM</option>
+                                            <option value="09:30 PM">09:30 PM</option>
+                                            <option value="10:00 PM">10:00 PM</option>
+                                            <option value="10:30 PM">10:30 PM</option>
+                                            <option value="11:00 PM">11:00 PM</option>
+                                            <option value="11:30 PM">11:30 PM</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="checkbox" id="id_is_closed" name="is_closed"> Set as Closed
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="hidden" value="{% url 'add_opening_hours' %}" id="add_hour_url" name="add_hour_url">
+                                        <button type="button" class="btn btn-success add_hour">Add Hours</button>
+                                    </div>
+                                </div>
+                            </form>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Main Section End -->
+{% endblock %}

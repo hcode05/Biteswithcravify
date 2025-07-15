@@ -63,3 +63,27 @@
   </header>
   <!-- Header End -->
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Run only on registration page (by checking if form field exists)
+    const latitudeInput = document.getElementById("id_latitude");
+    const longitudeInput = document.getElementById("id_longitude");
+
+    if (latitudeInput && longitudeInput) {
+        // Only enable getLocation if these fields exist
+        window.getLocation = function () {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    latitudeInput.value = position.coords.latitude;
+                    longitudeInput.value = position.coords.longitude;
+                }, function (error) {
+                    alert("Location access denied or failed.");
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        };
+    }
+});
+</script>

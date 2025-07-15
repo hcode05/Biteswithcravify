@@ -13,6 +13,8 @@ def detectUser(user):
         return 'custdashboard'    # name from urls.py
     elif user.role is None and user.is_superadmin:
         return 'admin:index'      # name for Django admin
+    else:
+        return 'custdashboard'    # default to customer dashboard
 def send_verification_email(request, user):
     from_email = settings.DEFAULT_FROM_EMAIL
     current_site = get_current_site(request)
