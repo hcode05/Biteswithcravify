@@ -90,16 +90,48 @@
                                                 </span>
                                             </li>
 
-                                            <li style="list-style-type: none;">
-    Tax
-    <span class="price float-right">
-        <span class="currency">$</span>
-        <span id="tax-total">0.00</span>
-    </span>
-</li>
+                                            <!-- Simple Tax Display -->
+                                            {% for tax_type, tax_info in tax_dict.items %}
+                                                {% for rate, amount in tax_info.items %}
+                                                <li class="static-tax-item" style="list-style-type: none; font-size: 0.9em; color: #666;">
+                                                    {{ tax_type }} ({{ rate }}%)
+                                                    <span class="price float-right">
+                                                        <span class="currency">$</span>
+                                                        <span>{{ amount|floatformat:2 }}</span>
+                                                    </span>
+                                                </li>
+                                                {% endfor %}
+                                            {% endfor %}
 
+                                            <!-- Dynamic Tax Breakdown -->
+                                            {% if tax_details %}
+                                                {% for tax_detail in tax_details %}
+                                                <li style="list-style-type: none; font-size: 0.9em; color: #666;">
+                                                    {{ tax_detail.name }} ({{ tax_detail.rate }})
+                                                    {% if tax_detail.exemption_applied %}
+                                                        <small style="color: #28a745;">[{{ tax_detail.exemption_percentage }}% exempt]</small>
+                                                    {% endif %}
+                                                    {% if tax_detail.is_included %}
+                                                        <small style="color: #ffc107;">[Included in price]</small>
+                                                    {% endif %}
+                                                    <span class="price float-right">
+                                                        <span class="currency">$</span>
+                                                        <span>{{ tax_detail.amount|floatformat:2 }}</span>
+                                                    </span>
+                                                </li>
+                                                {% endfor %}
+                                            {% endif %}
 
-                                            <li style="list-style-type: none; font-weight: 600;">
+                                            <!-- Total Tax Summary -->
+                                            <li style="list-style-type: none; border-top: 1px solid #eee; padding-top: 5px; margin-top: 5px;">
+                                                Total Tax
+                                                <span class="price float-right">
+                                                    <span class="currency">$</span>
+                                                    <span id="tax-total">{{ tax|floatformat:2 }}</span>
+                                                </span>
+                                            </li>
+
+                                            <li style="list-style-type: none; font-weight: 600; border-top: 2px solid #333; padding-top: 10px; margin-top: 10px;">
                                                 TOTAL
                                                 <span class="price float-right">
                                                     <span class="currency">$</span>

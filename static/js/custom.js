@@ -199,19 +199,90 @@ $(document).ready(function(){
     // APPLY CART AMOUNTS (Subtotal, Tax, Grand Total)
     function applyCartAmounts(subtotal, tax_dict, grand_total){
         if(window.location.pathname == '/cart/'){
+            console.log('applyCartAmounts called with:', {subtotal, tax_dict, grand_total});
+            
+            // Update subtotal and grand total
             $('#subtotal').html(subtotal);
             $('#total').html(grand_total);
 
-            // calculate total tax from tax_dict and update tax-total span
+            // Enhanced tax handling for dynamic tax system
             let total_tax = 0;
-            for(let key in tax_dict){
-                for(let percent in tax_dict[key]){
-                    total_tax += parseFloat(tax_dict[key][percent]);
+            
+            // Clear existing dynamic tax items AND static template tax items to avoid duplicates
+            $('.dynamic-tax-item').remove();
+            $('.static-tax-item').remove();
+            
+            // Handle the new dynamic tax structure
+            if (tax_dict && typeof tax_dict === 'object' && Object.keys(tax_dict).length > 0) {
+                // Find the insertion point (after subtotal)
+                let insertAfter = $('#subtotal').closest('li');
+                
+                for(let tax_type in tax_dict){
+                    let tax_info = tax_dict[tax_type];
+                    
+                    if (typeof tax_info === 'object') {
+                        // New dynamic tax structure
+                        for(let rate in tax_info){
+                            if (rate !== 'calculation_type' && rate !== 'description' && rate !== 'is_included') {
+                                let tax_amount = parseFloat(tax_info[rate]);
+                                if (!isNaN(tax_amount)) {
+                                    total_tax += tax_amount;
+                                    
+                                    // Create or update tax breakdown item
+                                    let tax_breakdown_html = `
+                                        <li class="dynamic-tax-item" style="list-style-type: none; font-size: 0.9em; color: #666;">
+                                            ${tax_type} (${rate}%)
+                                            ${tax_info.is_included ? '<small style="color: #ffc107;">[Included]</small>' : ''}
+                                            <span class="price float-right">
+                                                <span class="currency">$</span>
+                                                <span>${tax_amount.toFixed(2)}</span>
+                                            </span>
+                                        </li>
+                                    `;
+                                    insertAfter.after(tax_breakdown_html);
+                                    insertAfter = insertAfter.next(); // Update insertion point
+                                }
+                            }
+                        }
+                    } else {
+                        // Legacy tax structure support
+                        let tax_amount = parseFloat(tax_info);
+                        if (!isNaN(tax_amount)) {
+                            total_tax += tax_amount;
+                            
+                            let tax_breakdown_html = `
+                                <li class="dynamic-tax-item" style="list-style-type: none; font-size: 0.9em; color: #666;">
+                                    ${tax_type}
+                                    <span class="price float-right">
+                                        <span class="currency">$</span>
+                                        <span>${tax_amount.toFixed(2)}</span>
+                                    </span>
+                                </li>
+                            `;
+                            insertAfter.after(tax_breakdown_html);
+                            insertAfter = insertAfter.next();
+                        }
+                    }
                 }
             }
 
-            // ✅ update only the span that already exists in the template
-            $('#tax-total').html(total_tax.toFixed(2));
+            // Update total tax display - make sure it updates
+            if ($('#tax-total').length > 0) {
+                $('#tax-total').html(total_tax.toFixed(2));
+                console.log('Updated tax-total to:', total_tax.toFixed(2));
+            } else {
+                console.log('tax-total element not found');
+            }
+            
+            // Force update of grand total to ensure consistency
+            $('#total').html(grand_total);
+            
+            console.log('Final tax calculation:', {
+                subtotal: subtotal,
+                total_tax: total_tax.toFixed(2),
+                grand_total: grand_total,
+                tax_dict: tax_dict
+            });
         }
     }
      // ADD OPENING HOUR
@@ -338,6 +409,17 @@ $(document).ready(function(){
             }
         })
     })
+    
+    // Initialize cart amounts on page load for cart page
+    if(window.location.pathname == '/cart/'){
+        console.log('Cart page loaded - initializing amounts');
+        
+        // Remove static tax items immediately to prevent duplicates
+        $('.static-tax-item').remove();
+        
+        console.log('Static tax items removed on page load');
+    }
+    
     // document ready close 
     
 });

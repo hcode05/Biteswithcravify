@@ -25,25 +25,26 @@ def get_cart_amounts(request):
     
     if request.user.is_authenticated:
         cart_items = Cart.objects.filter(user=request.user)
-        
-        # Calculate subtotal
         for item in cart_items:
             fooditem = FoodItem.objects.get(pk=item.fooditem.id)
             subtotal += (fooditem.price * item.quantity)
 
-        # Calculate taxes using the Tax model
+        # Try to use old tax system first (for compatibility)
         try:
             from .models import Tax
-            active_taxes = Tax.objects.filter(is_active=True)
-            
-            for tax in active_taxes:
-                tax_amount = tax.calculate_tax_amount(subtotal)
-                if tax_amount > 0:
-                    tax_dict[tax.tax_type] = {
-                        str(tax.tax_percentage): tax_amount
-                    }
+            get_tax = Tax.objects.filter(is_active=True)
+            for i in get_tax:
+                # Check if this is old tax structure
+                if hasattr(i, 'tax_type') and hasattr(i, 'tax_percentage'):
+                    tax_type = i.tax_type
+                    tax_percentage = i.tax_percentage
+                    tax_amount = round((tax_percentage * subtotal)/100, 2)
+                    tax_dict.update({tax_type: {str(tax_percentage): tax_amount}})
+                else:
+                    # This might be new tax structure, skip for now
+                    pass
         except Exception as e:
-            # If there's any error with tax calculation, continue without taxes
+            # No tax system available or error, continue without taxes
             print(f"Tax calculation error: {e}")
             pass
 
@@ -55,4 +56,4 @@ def get_cart_amounts(request):
         
         grand_total = subtotal + total_tax
 
-    return dict(subtotal=subtotal, tax_dict=tax_dict, tax=total_tax, grand_total=grand_total)
+    return dict(subtotal=subtotal, tax_dict=tax_dict, grand_total=grand_total)

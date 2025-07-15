@@ -11,7 +11,7 @@ class CartAdmin(admin.ModelAdmin):
 
 @admin.register(Tax)
 class TaxAdmin(admin.ModelAdmin):
-    list_display = ('tax_type', 'tax_percentage', 'formatted_rate', 'is_active')
+    list_display = ('tax_type', 'tax_percentage', 'is_active', 'formatted_rate')
     list_filter = ('is_active',)
     search_fields = ('tax_type',)
     list_editable = ('tax_percentage', 'is_active')
@@ -20,7 +20,7 @@ class TaxAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Tax Information', {
             'fields': ('tax_type', 'tax_percentage', 'is_active'),
-            'description': 'Configure different types of taxes for your marketplace. Enter percentage without % symbol (e.g., 8.5 for 8.5%)'
+            'description': 'Configure different types of taxes for your marketplace'
         }),
     )
     
@@ -31,12 +31,15 @@ class TaxAdmin(admin.ModelAdmin):
     formatted_rate.admin_order_field = 'tax_percentage'
     
     def save_model(self, request, obj, form, change):
-        """Custom save logic"""
+        """Custom save logic if needed"""
         super().save_model(request, obj, form, change)
-        if not change:  # New tax created
-            self.message_user(request, f"New tax '{obj.tax_type}' created successfully!")
-        else:  # Existing tax updated
-            self.message_user(request, f"Tax '{obj.tax_type}' updated successfully!")
+        if change:
+            # Log the change
+            print(f"Tax {obj.tax_type} updated to {obj.tax_percentage}%")
+    
+    class Meta:
+        verbose_name = "Tax"
+        verbose_name_plural = "Taxes"
 
 
 # Register the models
