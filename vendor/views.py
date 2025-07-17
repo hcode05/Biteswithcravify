@@ -5,8 +5,6 @@ from .forms import VendorForm,OpeningHourForm
 from accounts.models import UserProfile
 from vendor.models import Vendor
 from django.contrib import messages
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 
 from django.contrib.auth.decorators import login_required
 from accounts.views import user_passes_test, check_role_vendor
@@ -238,69 +236,45 @@ def opening_hours(request):
     context = {
         'formset': formset,
         'opening_hours': opening_hours,
-        'form': OpeningHourForm(),  # Add a simple form for adding new hours
     }
     return render(request, 'vendor/opening_hours.html', context)
 
 @login_required(login_url='login')
 @user_passes_test(check_role_vendor)
-@login_required(login_url='login')
-@user_passes_test(check_role_vendor)
 def add_opening_hours(request):
     if request.method == 'POST':
-        try:
-            day = request.POST.get('day')
-            from_hour = request.POST.get('from_hour')
-            to_hour = request.POST.get('to_hour')
-            is_closed = request.POST.get('is_closed') == 'True'
+        day = request.POST.get('day')
+        from_hour = request.POST.get('from_hour')
+        to_hour = request.POST.get('to_hour')
+        is_closed = request.POST.get('is_closed') == 'True'
 
-            # Validate required fields
-            if not day:
-                return JsonResponse({'status': 'fail', 'message': 'Please select a day.'})
+        # Optional: prevent duplicate entries for the same day
+        if OpeningHour.objects.filter(vendor=request.user.vendor, day=day).exists():
+            return JsonResponse({'status': 'fail', 'message': 'Opening hour already exists for this day.'})
 
-            if not is_closed and (not from_hour or not to_hour):
-                return JsonResponse({'status': 'fail', 'message': 'Please provide both from and to hours when not closed.'})
+        opening_hour = OpeningHour(
+            vendor=request.user.vendor,
+            day=day,
+            from_hour=None if is_closed else from_hour,
+            to_hour=None if is_closed else to_hour,
+            is_closed=is_closed
+        )
+        opening_hour.save()
 
-            # Check if vendor exists
-            if not hasattr(request.user, 'vendor'):
-                return JsonResponse({'status': 'fail', 'message': 'Vendor profile not found.'})
-
-            # Optional: prevent duplicate entries for the same day
-            if OpeningHour.objects.filter(vendor=request.user.vendor, day=day).exists():
-                return JsonResponse({'status': 'fail', 'message': 'Opening hour already exists for this day.'})
-
-            opening_hour = OpeningHour(
-                vendor=request.user.vendor,
-                day=day,
-                from_hour=None if is_closed else from_hour,
-                to_hour=None if is_closed else to_hour,
-                is_closed=is_closed
-            )
-            opening_hour.save()
-
-            return JsonResponse({
-                'status': 'success',
-                'id': opening_hour.id,
-                'day': opening_hour.get_day_display(),
-                'from_hour': str(opening_hour.from_hour) if opening_hour.from_hour else '',
-                'to_hour': str(opening_hour.to_hour) if opening_hour.to_hour else '',
-                'is_closed': 'Closed' if opening_hour.is_closed else 'Open'
-            })
-
-        except Exception as e:
-            return JsonResponse({'status': 'fail', 'message': f'An error occurred: {str(e)}'})
+        return JsonResponse({
+            'status': 'success',
+            'id': opening_hour.id,
+            'day': opening_hour.get_day_display(),
+            'from_hour': str(opening_hour.from_hour) if opening_hour.from_hour else '',
+            'to_hour': str(opening_hour.to_hour) if opening_hour.to_hour else '',
+            'is_closed': 'Closed' if opening_hour.is_closed else 'Open'
+        })
 
     return JsonResponse({'status': 'fail', 'message': 'Invalid request method'}, status=400)
 
-@login_required(login_url='login')
-@user_passes_test(check_role_vendor)
 def remove_opening_hours(request, pk=None):
-    try:
-        # Ensure the opening hour belongs to the current vendor
-        hour = get_object_or_404(OpeningHour, pk=pk, vendor=request.user.vendor)
-        hour.delete()
-        return JsonResponse({'status': 'success', 'id': pk})
-    except OpeningHour.DoesNotExist:
-        return JsonResponse({'status': 'fail', 'message': 'Opening hour not found.'})
-    except Exception as e:
-        return JsonResponse({'status': 'fail', 'message': f'An error occurred: {str(e)}'})
+    if request.user.is_authenticated:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            hour = get_object_or_404(OpeningHour, pk=pk)
+            hour.delete()
+            return JsonResponse({'status': 'success', 'id': pk})

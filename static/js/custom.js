@@ -199,90 +199,19 @@ $(document).ready(function(){
     // APPLY CART AMOUNTS (Subtotal, Tax, Grand Total)
     function applyCartAmounts(subtotal, tax_dict, grand_total){
         if(window.location.pathname == '/cart/'){
-            console.log('applyCartAmounts called with:', {subtotal, tax_dict, grand_total});
-            
-            // Update subtotal and grand total
             $('#subtotal').html(subtotal);
             $('#total').html(grand_total);
 
-            // Enhanced tax handling for dynamic tax system
+            // calculate total tax from tax_dict and update tax-total span
             let total_tax = 0;
-            
-            // Clear existing dynamic tax items AND static template tax items to avoid duplicates
-            $('.dynamic-tax-item').remove();
-            $('.static-tax-item').remove();
-            
-            // Handle the new dynamic tax structure
-            if (tax_dict && typeof tax_dict === 'object' && Object.keys(tax_dict).length > 0) {
-                // Find the insertion point (after subtotal)
-                let insertAfter = $('#subtotal').closest('li');
-                
-                for(let tax_type in tax_dict){
-                    let tax_info = tax_dict[tax_type];
-                    
-                    if (typeof tax_info === 'object') {
-                        // New dynamic tax structure
-                        for(let rate in tax_info){
-                            if (rate !== 'calculation_type' && rate !== 'description' && rate !== 'is_included') {
-                                let tax_amount = parseFloat(tax_info[rate]);
-                                if (!isNaN(tax_amount)) {
-                                    total_tax += tax_amount;
-                                    
-                                    // Create or update tax breakdown item
-                                    let tax_breakdown_html = `
-                                        <li class="dynamic-tax-item" style="list-style-type: none; font-size: 0.9em; color: #666;">
-                                            ${tax_type} (${rate}%)
-                                            ${tax_info.is_included ? '<small style="color: #ffc107;">[Included]</small>' : ''}
-                                            <span class="price float-right">
-                                                <span class="currency">$</span>
-                                                <span>${tax_amount.toFixed(2)}</span>
-                                            </span>
-                                        </li>
-                                    `;
-                                    insertAfter.after(tax_breakdown_html);
-                                    insertAfter = insertAfter.next(); // Update insertion point
-                                }
-                            }
-                        }
-                    } else {
-                        // Legacy tax structure support
-                        let tax_amount = parseFloat(tax_info);
-                        if (!isNaN(tax_amount)) {
-                            total_tax += tax_amount;
-                            
-                            let tax_breakdown_html = `
-                                <li class="dynamic-tax-item" style="list-style-type: none; font-size: 0.9em; color: #666;">
-                                    ${tax_type}
-                                    <span class="price float-right">
-                                        <span class="currency">$</span>
-                                        <span>${tax_amount.toFixed(2)}</span>
-                                    </span>
-                                </li>
-                            `;
-                            insertAfter.after(tax_breakdown_html);
-                            insertAfter = insertAfter.next();
-                        }
-                    }
+            for(let key in tax_dict){
+                for(let percent in tax_dict[key]){
+                    total_tax += parseFloat(tax_dict[key][percent]);
                 }
             }
 
-            // Update total tax display - make sure it updates
-            if ($('#tax-total').length > 0) {
-                $('#tax-total').html(total_tax.toFixed(2));
-                console.log('Updated tax-total to:', total_tax.toFixed(2));
-            } else {
-                console.log('tax-total element not found');
-            }
-            
-            // Force update of grand total to ensure consistency
-            $('#total').html(grand_total);
-            
-            console.log('Final tax calculation:', {
-                subtotal: subtotal,
-                total_tax: total_tax.toFixed(2),
-                grand_total: grand_total,
-                tax_dict: tax_dict
-            });
+            // ✅ update only the span that already exists in the template
+            $('#tax-total').html(total_tax.toFixed(2));
         }
     }
      // ADD OPENING HOUR
@@ -295,18 +224,7 @@ $(document).ready(function(){
         var csrf_token = $('input[name=csrfmiddlewaretoken]').val()
         var url = document.getElementById('add_hour_url').value
 
-        console.log(day, from_hour, to_hour, is_closed, csrf_token, url)
-
-        // Day name mapping
-        const dayNames = {
-            '1': 'Monday',
-            '2': 'Tuesday', 
-            '3': 'Wednesday',
-            '4': 'Thursday',
-            '5': 'Friday',
-            '6': 'Saturday',
-            '7': 'Sunday'
-        };
+        console.log(day, from_hour, to_hour, is_closed, csrf_token)
 
         if(is_closed){
             is_closed = 'True'
@@ -328,49 +246,22 @@ $(document).ready(function(){
                     'csrfmiddlewaretoken': csrf_token,
                 },
                 success: function(response){
-                    console.log('Response:', response);
                     if(response.status == 'success'){
-                        // Use the day name from our mapping instead of response.day
-                        var dayName = dayNames[day] || response.day;
-                        
                         if(response.is_closed == 'Closed'){
-                            html = '<tr id="hour-'+response.id+'"><td>'+dayName+'</td><td>Closed</td><td><a href="#" class="remove_hour text-primary" data-url="/vendor/opening-hours/remove/'+response.id+'/" style="color: #007bff; text-decoration: none;">Remove</a></td></tr>';
+                            html = '<tr id="hour-'+response.id+'"><td><b>'+response.day+'</b></td><td>Closed</td><td><a href="#" class="remove_hour" data-url="/vendor/opening-hours/remove/'+response.id+'/">Remove</a></td></tr>';
                         }else{
-                            html = '<tr id="hour-'+response.id+'"><td>'+dayName+'</td><td>'+response.from_hour+' - '+response.to_hour+'</td><td><a href="#" class="remove_hour text-primary" data-url="/vendor/opening-hours/remove/'+response.id+'/" style="color: #007bff; text-decoration: none;">Remove</a></td></tr>';
+                            html = '<tr id="hour-'+response.id+'"><td><b>'+response.day+'</b></td><td>'+response.from_hour+' - '+response.to_hour+'</td><td><a href="#" class="remove_hour" data-url="/vendor/opening-hours/remove/'+response.id+'/">Remove</a></td></tr>';
                         }
                         
-                        $(".opening_hours tbody").append(html);
+                        $(".opening_hours").append(html)
                         document.getElementById("opening_hours").reset();
-                        
-                        // Show success message
-                        if(typeof swal !== 'undefined'){
-                            swal('Success', 'Opening hour added successfully!', 'success');
-                        } else {
-                            alert('Opening hour added successfully!');
-                        }
                     }else{
-                        if(typeof swal !== 'undefined'){
-                            swal(response.message, '', "error");
-                        } else {
-                            alert(response.message || 'Error adding opening hour');
-                        }
-                    }
-                },
-                error: function(xhr, status, error){
-                    console.error('AJAX Error:', xhr.responseText);
-                    if(typeof swal !== 'undefined'){
-                        swal('Error', 'Failed to add opening hour. Please try again.', 'error');
-                    } else {
-                        alert('Failed to add opening hour. Please try again.');
+                        swal(response.message, '', "error")
                     }
                 }
             })
         }else{
-            if(typeof swal !== 'undefined'){
-                swal('Please fill all fields', '', 'info');
-            } else {
-                alert('Please fill all fields');
-            }
+            swal('Please fill all fields', '', 'info')
         }
     });
 
@@ -383,43 +274,12 @@ $(document).ready(function(){
             type: 'GET',
             url: url,
             success: function(response){
-                console.log('Remove response:', response);
                 if(response.status == 'success'){
-                    document.getElementById('hour-'+response.id).remove();
-                    if(typeof swal !== 'undefined'){
-                        swal('Success', 'Opening hour removed successfully!', 'success');
-                    } else {
-                        alert('Opening hour removed successfully!');
-                    }
-                } else {
-                    if(typeof swal !== 'undefined'){
-                        swal('Error', response.message || 'Failed to remove opening hour', 'error');
-                    } else {
-                        alert(response.message || 'Failed to remove opening hour');
-                    }
-                }
-            },
-            error: function(xhr, status, error){
-                console.error('AJAX Error:', xhr.responseText);
-                if(typeof swal !== 'undefined'){
-                    swal('Error', 'Failed to remove opening hour. Please try again.', 'error');
-                } else {
-                    alert('Failed to remove opening hour. Please try again.');
+                    document.getElementById('hour-'+response.id).remove()
                 }
             }
         })
     })
-    
-    // Initialize cart amounts on page load for cart page
-    if(window.location.pathname == '/cart/'){
-        console.log('Cart page loaded - initializing amounts');
-        
-        // Remove static tax items immediately to prevent duplicates
-        $('.static-tax-item').remove();
-        
-        console.log('Static tax items removed on page load');
-    }
-    
     // document ready close 
     
 });

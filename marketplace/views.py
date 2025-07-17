@@ -24,17 +24,6 @@ def vendor_detail(request, vendor_slug):
     vendor=get_object_or_404(Vendor, vendor_slug=vendor_slug)
     categories = Category.objects.filter(vendor=vendor).prefetch_related(
       Prefetch('fooditems', queryset=FoodItem.objects.filter(is_available=True)))
-    
-    # Get opening hours
-    opening_hours = vendor.openinghour_set.all().order_by('day')
-    
-    # Get current day opening hours (today)
-    from datetime import datetime
-    today = datetime.now().weekday() + 1  # weekday() returns 0-6 (Mon-Sun), we need 1-7
-    if today > 7:  # Safety check
-        today = 1
-    current_opening_hours = vendor.openinghour_set.filter(day=today)
-    
     # Check if the user is authenticated and get the cart items
     if request.user.is_authenticated:
         cart_items = Cart.objects.filter(user=request.user)
@@ -44,8 +33,6 @@ def vendor_detail(request, vendor_slug):
       'vendor': vendor,
       'categories': categories,
       'cart_items': cart_items,
-      'opening_hours': opening_hours,
-      'current_opening_hours': current_opening_hours,
   }
     return render(request, 'marketplace/vendor_detail.html',context)
 
@@ -60,10 +47,10 @@ def add_to_cart(request, food_id):
                     # Increase the cart quantity
                     chkCart.quantity += 1
                     chkCart.save()
-                    return JsonResponse({'status': 'Success', 'message': 'Increased the cart quantity','cart_counter':get_cart_counter(request),'qty': chkCart.quantity,'cart_amount': get_cart_amounts(request)})
+                    return JsonResponse({'status': 'Success', 'message': 'Increased the cart quantity','cart_counter':get_cart_counter(request),'qty': chkCart.quantity,'get_cart_amounts': get_cart_amounts(request)})
                 except Cart.DoesNotExist:
                     chkCart = Cart.objects.create(user=request.user, fooditem=fooditem, quantity=1)
-                    return JsonResponse({'status': 'Success', 'message': 'Added the food to the cart','cart_counter':get_cart_counter(request),'qty': chkCart.quantity,'cart_amount': get_cart_amounts(request)})
+                    return JsonResponse({'status': 'Success', 'message': 'Added the food to the cart','cart_counter':get_cart_counter(request),'qty': chkCart.quantity,'get_cart_amounts': get_cart_amounts(request)})
             except FoodItem.DoesNotExist:
                 return JsonResponse({'status': 'Failed', 'message': 'This food does not exist!'})
         else:

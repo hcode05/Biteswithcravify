@@ -1,6 +1,5 @@
-from .models import Cart
+from .models import Cart, Tax
 from menu.models import FoodItem
-from decimal import Decimal
 
 
 def get_cart_counter(request):
@@ -20,39 +19,22 @@ def get_cart_counter(request):
 
 def get_cart_amounts(request):
     subtotal = 0
-    tax_dict = {}
+    tax = 0
     grand_total = 0
-    
+    tax_dict = {}
     if request.user.is_authenticated:
         cart_items = Cart.objects.filter(user=request.user)
-        
-        # Calculate subtotal
         for item in cart_items:
             fooditem = FoodItem.objects.get(pk=item.fooditem.id)
-            subtotal += (fooditem.price * item.quantity)
+            subtotal += (fooditem.price * item.quantity) # subtotal = subtotal + (fooditem.price * item.quantity)
 
-        # Calculate taxes using the Tax model
-        try:
-            from .models import Tax
-            active_taxes = Tax.objects.filter(is_active=True)
-            
-            for tax in active_taxes:
-                tax_amount = tax.calculate_tax_amount(subtotal)
-                if tax_amount > 0:
-                    tax_dict[tax.tax_type] = {
-                        str(tax.tax_percentage): tax_amount
-                    }
-        except Exception as e:
-            # If there's any error with tax calculation, continue without taxes
-            print(f"Tax calculation error: {e}")
-            pass
-
-        # Calculate grand total
-        total_tax = 0
-        for tax_type_data in tax_dict.values():
-            for tax_amount in tax_type_data.values():
-                total_tax += tax_amount
+        get_tax = Tax.objects.filter(is_active=True)
+        for i in get_tax:
+            tax_type = i.tax_type
+            tax_percentage = i.tax_percentage
+            tax_amount = round((tax_percentage * subtotal)/100, 2)
+            tax_dict.update({tax_type: {str(tax_percentage) : tax_amount}})
         
-        grand_total = subtotal + total_tax
-
-    return dict(subtotal=subtotal, tax_dict=tax_dict, tax=total_tax, grand_total=grand_total)
+        tax = sum(x for key in tax_dict.values() for x in key.values())
+        grand_total = subtotal + tax
+    return dict(subtotal=subtotal, tax=tax, grand_total=grand_total, tax_dict=tax_dict)
