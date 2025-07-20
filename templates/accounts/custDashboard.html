@@ -5,7 +5,7 @@
 <!-- Main Section Start -->
 		<div class="main-section">
 			<div class="page-section restaurant-detail-image-section" 
-     style="min-height: 400px; background: url({% static 'extra-images/cover-photo01.jpg' %}) no-repeat center center / cover;">
+     style="min-height: 400px; background: url({% if user_profile.cover_photo %}{{ user_profile.cover_photo.url }}{% else %}{% static 'extra-images/cover-photo01.jpg' %}{% endif %}) no-repeat center center / cover;">
      
      <!-- Container Start -->
      <div class="container">
@@ -17,15 +17,25 @@
                      <div class="company-info">
                          <div class="img-holder">
                              <figure>
-                                 <img src="{% static 'extra-images/listing-logo18.png' %}" alt="">
+                                 {% if user_profile.profile_picture %}
+                                     <img src="{{ user_profile.profile_picture.url }}" alt="Profile Picture">
+                                 {% else %}
+                                     <img src="{% static 'extra-images/listing-logo18.png' %}" alt="Default Profile">
+                                 {% endif %}
                              </figure>
                          </div>
                          <div class="text-holder">
-                             <span class="restaurant-title">Himani Shah</span>
+                             <span class="restaurant-title">{{ user.first_name }} {{ user.last_name }}</span>
                              <div class="text">
                                  <i class="icon-location"></i>
-                                 <p>+91 1234567890</p>
+                                 <p>{{ user.phone_number|default:"No phone number" }}</p>
                              </div>
+                             {% if user_profile.address %}
+                             <div class="text">
+                                 <i class="icon-location"></i>
+                                 <p>{{ user_profile.address }}</p>
+                             </div>
+                             {% endif %}
                          </div>
                      </div>
                  </div>
@@ -53,16 +63,10 @@
 												<h5>Recent Orders</h5>
 												<div class="right-filters row pull-right">
 													<div class="col-lg-6 col-md-6 col-xs-6">
-														<div class="input-field">
-															<select class="chosen-select-no-single">
-																<option selected="selected" value="">Select Orders Status</option>
-																<option value="Processing">Processing</option>
-																<option value="Cancelled">Cancelled</option>
-																<option value="Completed">Completed</option>
-															</select>
-														</div>
+														<a href="{% url 'customer_my_orders' %}" class="btn btn-outline-primary btn-sm">
+															<i class="fa fa-list"></i> View All Orders
+														</a>
 													</div>
-													
 												</div>
 											</div>
 										</div>
@@ -73,40 +77,52 @@
 												<div class="responsive-table">
 													<ul class="table-generic">
 														<li class="order-heading-titles">
-															<div>Order id</div>
+															<div>Order ID</div>
 															<div>Date</div>
 															<div>Total Price</div>
-															<div>Charges</div>
-															<div>Received</div>
+															<div>Payment Method</div>
 															<div>Status</div>
-														</li>
-														<li class="order-heading-titles">
-															<div><a href="#" data-toggle="modal" data-target="#order-det-22606">order-22606</a></div>
-															<div>Apr 9,2020</div>
-															<div>£ 38.99</div>
-															<div>£ 3.90</div>
-															<div>£ 35.09</div>
-															<div><span class="order-status" style="background-color: #047a06;">Completed</span></div>
+															<div>Action</div>
 														</li>
 														
-														
-														
-														<li class="order-heading-titles">
-															<div><a href="#" data-toggle="modal" data-target="#order-det-22606">order-22583</a></div>
-															<div>Apr 9,2020</div>
-															<div>£ 26.22</div>
-															<div>£ 2.62</div>
-															<div>£ 23.60</div>
-															<div><span class="order-status" style="background-color: #1e73be;">Processing</span></div>
-														</li>
-														<li class="order-heading-titles">
-															<div><a href="#" data-toggle="modal" data-target="#order-det-22606">order-22493</a></div>
-															<div>Apr 2,2020</div>
-															<div>£ 28.24</div>
-															<div>£ 2.82</div>
-															<div>£ 25.42</div>
-															<div><span class="order-status" style="background-color: #047a06;">Completed</span></div>
-														</li>
+														{% if recent_orders %}
+															{% for order in recent_orders %}
+															<li class="order-heading-titles">
+																<div>
+																	<a href="{% url 'order_detail' order.order_number %}" class="text-primary">
+																		{{ order.order_number }}
+																	</a>
+																</div>
+																<div>{{ order.created_at|date:"M d, Y" }}</div>
+																<div>${{ order.total }}</div>
+																<div>{{ order.payment_method }}</div>
+																<div>
+																	<span class="order-status 
+																		{% if order.status == 'Accepted' %}bg-success
+																		{% elif order.status == 'Cancelled' %}bg-danger
+																		{% elif order.status == 'Completed' %}bg-info
+																		{% else %}bg-warning{% endif %}">
+																		{{ order.status }}
+																	</span>
+																</div>
+																<div>
+																	<a href="{% url 'order_detail' order.order_number %}" 
+																	   class="btn btn-sm btn-outline-primary">
+																		<i class="fa fa-eye"></i> View
+																	</a>
+																</div>
+															</li>
+															{% endfor %}
+														{% else %}
+															<li class="order-heading-titles">
+																<div colspan="6" class="text-center py-4">
+																	<p class="text-muted mb-0">No orders yet</p>
+																	<a href="{% url 'marketplace' %}" class="btn btn-sm btn-primary mt-2">
+																		<i class="fa fa-utensils"></i> Browse Restaurants
+																	</a>
+																</div>
+															</li>
+														{% endif %}
 													</ul>
 
 												</div>												

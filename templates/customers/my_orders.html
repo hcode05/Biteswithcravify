@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'includes/alerts.html' %}
+
+<!-- Main Section Start -->
+<div class="main-section">
+    
+    {% include 'customers/cover.html' %}
+    <div class="page-section account-header buyer-logged-in">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                    <!-- Load the sidebar here -->
+                    {% include 'includes/c_sidebar.html' %}
+                </div>
+                <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+                    <div class="user-dashboard loader-holder">
+                        <div class="user-holder">
+                            
+                            <h5 class="text-uppercase">My Orders</h5>
+
+                            {% if orders %}
+                                <div class="row">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <div class="user-orders-list">
+                                            <div class="responsive-table">
+                                                <ul class="table-generic">
+                                                    <li class="order-heading-titles">
+                                                        <div>Order ID</div>
+                                                        <div>Date</div>
+                                                        <div>Total Price</div>
+                                                        <div>Payment Method</div>
+                                                        <div>Status</div>
+                                                        <div>Action</div>
+                                                    </li>
+                                                    
+                                                    {% for order in orders %}
+                                                    <li class="order-heading-titles">
+                                                        <div>
+                                                            <a href="{% url 'order_detail' order.order_number %}" class="text-primary">
+                                                                {{ order.order_number }}
+                                                            </a>
+                                                        </div>
+                                                        <div>{{ order.created_at|date:"M d, Y" }}</div>
+                                                        <div>${{ order.total }}</div>
+                                                        <div>{{ order.payment_method }}</div>
+                                                        <div>
+                                                            <span class="order-status 
+                                                                {% if order.status == 'Accepted' %}bg-success
+                                                                {% elif order.status == 'Cancelled' %}bg-danger
+                                                                {% elif order.status == 'Completed' %}bg-info
+                                                                {% else %}bg-warning{% endif %}">
+                                                                {{ order.status }}
+                                                            </span>
+                                                        </div>
+                                                        <div>
+                                                            <a href="{% url 'order_detail' order.order_number %}" 
+                                                               class="btn btn-sm btn-outline-primary">
+                                                                <i class="fa fa-eye"></i> View Details
+                                                            </a>
+                                                        </div>
+                                                    </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="text-center p-5">
+                                    <div class="empty-orders">
+                                        <i class="fa fa-shopping-cart fa-3x text-muted mb-3"></i>
+                                        <h4>No Orders Yet</h4>
+                                        <p class="text-muted">You haven't placed any orders yet.</p>
+                                        <a href="{% url 'marketplace' %}" class="btn btn-primary">
+                                            <i class="fa fa-utensils"></i> Browse Restaurants
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Main Section End -->
+
+<style>
+.order-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.bg-success { background-color: #28a745; }
+.bg-danger { background-color: #dc3545; }
+.bg-info { background-color: #17a2b8; }
+.bg-warning { background-color: #ffc107; color: #212529; }
+
+.empty-orders {
+    padding: 40px 20px;
+}
+
+.table-generic li {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.table-generic li:first-child {
+    font-weight: bold;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table-generic li > div {
+    flex: 1;
+    padding: 0 10px;
+}
+
+.table-generic li > div:last-child {
+    flex: 0 0 auto;
+}
+</style>
+
+{% endblock %}

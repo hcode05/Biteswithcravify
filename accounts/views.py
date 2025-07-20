@@ -178,7 +178,30 @@ def myAccount(request):
 @login_required(login_url='login')
 @user_passes_test(check_role_customer)
 def custdashboard(request):
-    return render(request, 'accounts/custDashboard.html')
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        # Get recent orders for the dashboard
+        from orders.models import Order
+        recent_orders = Order.objects.filter(user=request.user, is_ordered=True).order_by('-created_at')[:5]
+        
+        context = {
+            'user_profile': user_profile,
+            'user': request.user,
+            'recent_orders': recent_orders,
+        }
+    except UserProfile.DoesNotExist:
+        # If no profile exists, create one with default values
+        user_profile = UserProfile.objects.create(user=request.user)
+        from orders.models import Order
+        recent_orders = Order.objects.filter(user=request.user, is_ordered=True).order_by('-created_at')[:5]
+        
+        context = {
+            'user_profile': user_profile,
+            'user': request.user,
+            'recent_orders': recent_orders,
+        }
+    
+    return render(request, 'accounts/custDashboard.html', context)
 
 @login_required(login_url='login')
 @user_passes_test(check_role_vendor)

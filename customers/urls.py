@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     path('', AccountViews.custdashboard, name='customers'),
     path('profile/', views.cprofile, name='cprofile'),
-    # path('my_orders/', views.my_orders, name='customer_my_orders'),
-    # path('order_detail/<int:order_number>/', views.order_detail, name='order_detail'),
+    path('my_orders/', views.my_orders, name='customer_my_orders'),
+    path('order_detail/<str:order_number>/', views.order_detail, name='order_detail'),
+    path('change_password/', views.change_password, name='customer_change_password'),
 ]
