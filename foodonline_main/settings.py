@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'marketplace',
     'django.contrib.gis',  
     'customers',
+    'orders',
 ]
 
 MIDDLEWARE = [
@@ -80,7 +81,9 @@ TEMPLATES = [
                 "accounts.context_processors.get_vendor", 
                 "accounts.context_processors.get_user_profile",
                 "marketplace.context_processors.get_cart_counter",
-                "marketplace.context_processors.get_cart_amounts",    
+                "marketplace.context_processors.get_cart_amounts", 
+                "accounts.context_processors.get_user_profile", 
+                "accounts.context_processors.get_paypal_client_id",  
             ],
         },
     },
@@ -176,3 +179,6 @@ os.environ['PROJ_LIB'] = r"C:\Users\ADMIN\Desktop\foodproject\env\Lib\site-packa
 os.environ['PATH'] += r";C:\Users\ADMIN\Desktop\foodproject\env\Lib\site-packages\osgeo"
 GDAL_LIBRARY_PATH = r"C:\Users\ADMIN\Desktop\foodproject\env\Lib\site-packages\osgeo\gdal304.dll"
 GEOS_LIBRARY_PATH = r"C:\Users\ADMIN\Desktop\foodproject\env\Lib\site-packages\osgeo\geos_c.dll"
+
+PAYPAL_CLIENT_ID = config('PAYPAL_CLIENT_ID')
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'

@@ -90,16 +90,37 @@ $(document).ready(function(){
                         window.location = '/login';
                     });
                 } else if(response.status == 'Failed'){
-                    swal(response.message, '', 'error');
+                    // Handle restaurant closed error specifically
+                    if(response.restaurant_closed) {
+                        swal({
+                            title: "Restaurant Closed",
+                            text: response.message,
+                            icon: "warning",
+                            buttons: {
+                                confirm: {
+                                    text: "OK",
+                                    value: true,
+                                    visible: true,
+                                    className: "btn btn-warning",
+                                    closeModal: true
+                                }
+                            }
+                        });
+                    } else {
+                        swal(response.message, '', 'error');
+                    }
                 } else {
                     $('#cart_counter').html(response.cart_counter['cart_count']);
                     $('#qty-' + food_id).html(response.qty);
 
-                    applyCartAmounts(
-                        response.cart_amount['subtotal'],
-                        response.cart_amount['tax_dict'],
-                        response.cart_amount['grand_total']
-                    );
+                    // Always apply cart amounts, not just on cart page
+                    if(response.get_cart_amounts) {
+                        applyCartAmounts(
+                            response.get_cart_amounts['subtotal'],
+                            response.get_cart_amounts['tax_dict'],
+                            response.get_cart_amounts['grand_total']
+                        );
+                    }
                 }
             }
         });
@@ -135,15 +156,19 @@ $(document).ready(function(){
                     $('#cart_counter').html(response.cart_counter['cart_count']);
                     $('#qty-' + food_id).html(response.qty);
 
+                    // Always update cart amounts on all pages
+                    if(response.get_cart_amounts) {
+                        applyCartAmounts(
+                            response.get_cart_amounts['subtotal'],
+                            response.get_cart_amounts['tax_dict'],
+                            response.get_cart_amounts['grand_total']
+                        );
+                    }
+
+                    // Additional cart page specific updates
                     if(window.location.pathname == '/cart/'){
                         removeCartItem(response.qty, cart_id);
                         checkEmptyCart();
-
-                        applyCartAmounts(
-                            response.cart_amount['subtotal'],
-                            response.cart_amount['tax_dict'],
-                            response.cart_amount['grand_total']
-                        );
                     }
                 }
             }
@@ -168,11 +193,14 @@ $(document).ready(function(){
                     $('#cart_counter').html(response.cart_counter['cart_count']);
                     swal(response.status, response.message, "success");
 
-                    applyCartAmounts(
-                        response.cart_amount['subtotal'],
-                        response.cart_amount['tax_dict'],
-                        response.cart_amount['grand_total']
-                    );
+                    // Always update cart amounts on all pages
+                    if(response.get_cart_amounts) {
+                        applyCartAmounts(
+                            response.get_cart_amounts['subtotal'],
+                            response.get_cart_amounts['tax_dict'],
+                            response.get_cart_amounts['grand_total']
+                        );
+                    }
 
                     removeCartItem(0, cart_id);
                     checkEmptyCart();
@@ -198,11 +226,12 @@ $(document).ready(function(){
 
     // APPLY CART AMOUNTS (Subtotal, Tax, Grand Total)
     function applyCartAmounts(subtotal, tax_dict, grand_total){
+        // Update cart amounts on cart page
         if(window.location.pathname == '/cart/'){
             $('#subtotal').html(subtotal);
             $('#total').html(grand_total);
 
-            // calculate total tax from tax_dict and update tax-total span
+            // Calculate total tax from tax_dict and update tax-total span
             let total_tax = 0;
             for(let key in tax_dict){
                 for(let percent in tax_dict[key]){
@@ -210,8 +239,25 @@ $(document).ready(function(){
                 }
             }
 
-            // ✅ update only the span that already exists in the template
+            // Update the tax-total span
             $('#tax-total').html(total_tax.toFixed(2));
+        }
+        
+        // Update any cart summary that might exist on other pages
+        if($('#cart-subtotal').length) {
+            $('#cart-subtotal').html(subtotal);
+        }
+        if($('#cart-tax').length) {
+            let total_tax = 0;
+            for(let key in tax_dict){
+                for(let percent in tax_dict[key]){
+                    total_tax += parseFloat(tax_dict[key][percent]);
+                }
+            }
+            $('#cart-tax').html(total_tax.toFixed(2));
+        }
+        if($('#cart-total').length) {
+            $('#cart-total').html(grand_total);
         }
     }
      // ADD OPENING HOUR

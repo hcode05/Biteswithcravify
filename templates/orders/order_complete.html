@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-5 mb-5">
+    <div class="justify-content-center row">
+        <div class="col-md-8">
+            <div class="bg-white p-4 shadow-sm border" id="order-receipt">
+                <!-- Header with Logo and Print Button -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <img src="{% static 'logo/foodOnlineLogo.png' %}" alt="foodOnline Logo" width="250">
+                    </div>
+                    <div class="col-md-4 text-right">
+                        <button onclick="window.print()" class="btn btn-outline-primary btn-sm">
+                            <i class="fa fa-print"></i> Print Receipt
+                        </button>
+                        <a href="{% url 'marketplace' %}" class="btn btn-success btn-sm ml-2">
+                            <i class="fa fa-home"></i> Back to Home
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Success Message -->
+                <div class="alert alert-success text-center mb-4">
+                    <h4 class="mb-0"><i class="fa fa-check-circle"></i> Order Placed Successfully!</h4>
+                    <p class="mb-0">Thank you for your order. We'll start preparing your food right away.</p>
+                </div>
+
+                <!-- Customer and Order Info -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5 class="text-primary mb-3">Order Details</h5>
+                        <div class="card">
+                            <div class="card-body">
+                                <p class="mb-1"><strong>Order Number:</strong> {{ order.order_number }}</p>
+                                <p class="mb-1"><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y" }}</p>
+                                <p class="mb-1"><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+                                <p class="mb-1"><strong>Transaction ID:</strong> {{ order.payment.transaction_id }}</p>
+                                <p class="mb-0">
+                                    <strong>Status:</strong> 
+                                    <span class="badge 
+                                        {% if order.status == 'Accepted' %}badge-success
+                                        {% elif order.status == 'Cancelled' %}badge-danger
+                                        {% elif order.status == 'Completed' %}badge-info
+                                        {% else %}badge-warning{% endif %}">
+                                        {{ order.status }}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="text-primary mb-3">Delivery Address</h5>
+                        <div class="card">
+                            <div class="card-body">
+                                <p class="mb-1"><strong>{{ order.name }}</strong></p>
+                                <p class="mb-1">{{ order.address }}</p>
+                                <p class="mb-1">{{ order.city }}, {{ order.state }} {{ order.pin_code }}</p>
+                                <p class="mb-1">{{ order.country }}</p>
+                                <p class="mb-1"><strong>Phone:</strong> {{ order.phone }}</p>
+                                <p class="mb-0"><strong>Email:</strong> {{ order.email }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <h5 class="text-primary mb-3">Order Items</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Item</th>
+                                <th>Restaurant</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in ordered_food %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ item.fooditem.image.url }}" width="50" height="50" class="rounded mr-3" alt="Food Image">
+                                        <div>
+                                            <strong>{{ item.fooditem }}</strong>
+                                            <br><small class="text-muted">{{ item.fooditem.description|truncatechars:50 }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a href="{% url 'vendor_detail' item.fooditem.vendor.vendor_slug %}" class="text-primary">
+                                        {{ item.fooditem.vendor.vendor_name }}
+                                    </a>
+                                </td>
+                                <td class="text-center">{{ item.quantity }}</td>
+                                <td>${{ item.fooditem.price }}</td>
+                                <td>${{ item.amount }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Payment Summary -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="text-center">
+                            <img src="{% static 'images/paid.png' %}" width="150" alt="Payment Confirmed">
+                            <p class="text-success mt-2"><strong>Payment Confirmed</strong></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0">Payment Summary</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Subtotal:</span>
+                                    <span>${{ subtotal }}</span>
+                                </div>
+                                {% for key, value in tax_data.items %}
+                                    {% for i, j in value.items %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>{{ key }} ({{ i }}%):</span>
+                                        <span>${{ j }}</span>
+                                    </div>
+                                    {% endfor %}
+                                {% endfor %}
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <strong>Total:</strong>
+                                    <strong class="text-primary">${{ order.total }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="text-primary">Thanks for ordering with us!</h6>
+                                <p class="mb-0">FoodOnline Team</p>
+                                <small class="text-muted">We'll deliver your order soon</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="text-primary">Need Help?</h6>
+                                <p class="mb-1"><strong>Call us:</strong> +91 0011223344</p>
+                                <p class="mb-0"><strong>Email:</strong> support@foodonline.com</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Tracking Info -->
+                <div class="alert alert-info mt-4">
+                    <h6 class="mb-2"><i class="fa fa-info-circle"></i> What's Next?</h6>
+                    <ul class="mb-0">
+                        <li>You'll receive an email confirmation shortly</li>
+                        <li>Restaurant will start preparing your order</li>
+                        <li>You'll be notified when your order is ready for delivery</li>
+                        <li>Track your order status in your account dashboard</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Print Styles -->
+<style>
+    @media print {
+        .btn, .alert-info {
+            display: none !important;
+        }
+        #order-receipt {
+            box-shadow: none !important;
+            border: none !important;
+        }
+        .container {
+            max-width: 100% !important;
+        }
+    }
+</style>
+
+{% endblock %}

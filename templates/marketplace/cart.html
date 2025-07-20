@@ -18,6 +18,23 @@
                             <div id="home" class="tab-pane in active">
                                 <div class="menu-itam-holder">
                                     
+                                    <!-- Restaurant Closed Warning -->
+                                    {% if has_closed_restaurants %}
+                                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                        <i class="fa fa-exclamation-triangle"></i>
+                                        <strong>Restaurant Closed:</strong> The following restaurants in your cart are currently closed:
+                                        <ul class="mb-0 mt-2">
+                                            {% for restaurant in closed_restaurants %}
+                                            <li>{{ restaurant }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                        <p class="mb-0 mt-2"><strong>You cannot place orders from closed restaurants.</strong></p>
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                    
                                     <div class="text-center p-5" id="empty-cart" style="display: none;">
                                         <h3>Cart is empty</h3>
                                     </div>
@@ -91,12 +108,12 @@
                                             </li>
 
                                             <li style="list-style-type: none;">
-    Tax
-    <span class="price float-right">
-        <span class="currency">$</span>
-        <span id="tax-total">0.00</span>
-    </span>
-</li>
+                                                Tax
+                                                <span class="price float-right">
+                                                    <span class="currency">$</span>
+                                                    <span id="tax-total">{{ tax|default:"0.00"|floatformat:2 }}</span>
+                                                </span>
+                                            </li>
 
 
                                             <li style="list-style-type: none; font-weight: 600;">
@@ -107,7 +124,13 @@
                                                 </span>
                                             </li>
 
-                                            {% comment %} <a href="{% url 'checkout' %}" class="btn btn-danger w-100 p-2 mt-3">PROCEED TO CHECKOUT</a> {% endcomment %}
+                                            {% if has_closed_restaurants %}
+                                                <button class="btn btn-secondary w-100 p-2 mt-3" disabled>
+                                                    <i class="fa fa-exclamation-triangle"></i> CHECKOUT DISABLED - RESTAURANTS CLOSED
+                                                </button>
+                                            {% else %}
+                                                <a href="{% url 'checkout' %}" class="btn btn-danger w-100 p-2 mt-3">PROCEED TO CHECKOUT</a>
+                                            {% endif %}
                                         </ul>
                                     </div>
                                     

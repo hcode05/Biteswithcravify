@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PayPal Debug Test</title>
+    <script src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&currency=USD"></script>
+</head>
+<body>
+    <h1>PayPal Debug Test</h1>
+    <p>PayPal Client ID: <strong>{{ PAYPAL_CLIENT_ID }}</strong></p>
+    
+    <div id="paypal-button-container"></div>
+    
+    <script>
+        console.log('PayPal Client ID:', '{{ PAYPAL_CLIENT_ID }}');
+        
+        if (typeof paypal !== 'undefined') {
+            console.log('PayPal SDK loaded successfully');
+            
+            paypal.Buttons({
+                createOrder: function(data, actions) {
+                    console.log('Creating PayPal order...');
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
+                                value: '10.00'
+                            }
+                        }]
+                    });
+                },
+                onApprove: function(data, actions) {
+                    console.log('PayPal payment approved:', data);
+                    return actions.order.capture().then(function(orderData) {
+                        console.log('Payment captured:', orderData);
+                        alert('Payment successful! Transaction ID: ' + orderData.purchase_units[0].payments.captures[0].id);
+                    });
+                },
+                onError: function(err) {
+                    console.error('PayPal error:', err);
+                    alert('PayPal error: ' + err);
+                }
+            }).render('#paypal-button-container');
+        } else {
+            console.error('PayPal SDK not loaded');
+            document.getElementById('paypal-button-container').innerHTML = '<p style="color:red;">PayPal SDK failed to load</p>';
+        }
+    </script>
+</body>
+</html>

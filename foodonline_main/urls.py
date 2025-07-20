@@ -19,6 +19,7 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 from marketplace import views as MarketplaceViews
+from debug_views import debug_paypal
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,6 +30,12 @@ urlpatterns = [
     path('cart/', MarketplaceViews.cart, name='cart'),
     # SEARCH
     path('search/', MarketplaceViews.search, name='search'),
-
+    
+    # DEBUG
+    path('debug-paypal/', debug_paypal, name='debug_paypal'),
+     # CHECKOUT
+    path('checkout/', MarketplaceViews.checkout, name='checkout'),
+    # ORDERS
+    path('orders/', include('orders.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

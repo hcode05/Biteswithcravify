@@ -24,13 +24,26 @@
                                 </figure>
                             </div>
                             <div class="text-holder">
-                                <span class="restaurant-title">{{ vendor.vendor_name }} {% if not vendor.is_open %}[Closed]{% endif %}</span>
+                                <span class="restaurant-title">
+                                    {{ vendor.vendor_name }}
+                                    {% if not vendor.is_open %}
+                                        <span class="badge badge-danger ml-2">CLOSED</span>
+                                    {% else %}
+                                        <span class="badge badge-success ml-2">OPEN</span>
+                                    {% endif %}
+                                </span>
                                 <div class="text">
                                     {% if vendor.user_profile.address %}
                                     <i class="icon-location"></i>
                                     <p>{{vendor.user_profile.address}}</p>
                                     {% endif %}
                                 </div>
+                                {% if not vendor.is_open %}
+                                <div class="alert alert-warning mt-2 mb-0">
+                                    <i class="fa fa-clock"></i>
+                                    <strong>This restaurant is currently closed.</strong> You cannot add items to cart until they reopen.
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                         {% if opening_hours %}
@@ -110,7 +123,13 @@
 
                                                     <a href="#" class="decrease_cart" data-id="{{ food.id }}" data-url="{% url 'decrease_cart' food.id %}" style="margin-right: 28px;"><i class="icon-minus text-color"></i></a>
                                                     <label id="qty-{{food.id}}">0</label>
-                                                    <a href="#" class="add_to_cart" data-id="{{ food.id }}" data-url="{% url 'add_to_cart' food.id %}"><i class="icon-plus4 text-color"></i></a>
+                                                    {% if vendor.is_open %}
+                                                        <a href="#" class="add_to_cart" data-id="{{ food.id }}" data-url="{% url 'add_to_cart' food.id %}"><i class="icon-plus4 text-color"></i></a>
+                                                    {% else %}
+                                                        <a href="#" class="add_to_cart_disabled" style="opacity: 0.5; cursor: not-allowed;" title="Restaurant is closed">
+                                                            <i class="icon-plus4 text-muted"></i>
+                                                        </a>
+                                                    {% endif %}
                                                     
                                                 </div>
                                             </li>

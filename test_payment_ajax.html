@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Payment AJAX Test</h1>
+    <button id="testPayment">Test Payment AJAX</button>
+    <div id="result"></div>
+    
+    <script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    $('#testPayment').click(function() {
+        console.log('Testing payment AJAX...');
+        
+        $.ajax({
+            type: 'POST',
+            url: '/orders/payments/',
+            timeout: 10000,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            data: {
+                'order_number': 'TEST_ORDER_123',
+                'transaction_id': 'TEST_TRANS_123',
+                'payment_method': 'PayPal',
+                'status': 'COMPLETED',
+                'csrfmiddlewaretoken': getCookie('csrftoken')
+            },
+            beforeSend: function(xhr, settings) {
+                console.log('Test AJAX starting...');
+                console.log('URL:', settings.url);
+                console.log('Data:', settings.data);
+            },
+            success: function(response) {
+                console.log('Test SUCCESS:', response);
+                $('#result').html('<p style="color: green;">SUCCESS: ' + JSON.stringify(response) + '</p>');
+            },
+            error: function(xhr, status, error) {
+                console.error('Test ERROR:', xhr.status, xhr.responseText);
+                $('#result').html('<p style="color: red;">ERROR: ' + xhr.status + ' - ' + xhr.responseText + '</p>');
+            }
+        });
+    });
+    </script>
+</body>
+</html>

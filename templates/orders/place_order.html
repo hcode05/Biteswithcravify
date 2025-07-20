@@ -1,0 +1,653 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% block content %}
+{% csrf_token %}
+
+<!-- Main Section Start -->
+<div class="main-section pt-5">
+    <div class="page-section">
+        <div class="container">
+            <div class="row">
+                
+                <div class="col-lg-8 col-md-8 col-sm-8 col-xs-12">
+                    <div class="tabs-holder horizontal">
+                        <ul class="stickynav-tabs nav nav-tabs">
+                            <li class="active"><a data-toggle="tab" href="#home"><i class="fa fa-shopping-cart text-danger"></i>Review Your Billing Address</a></li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            <div id="home" class="tab-pane in active">
+                                <div class="menu-itam-holder">
+                                    
+                                    <div id="menu-item-list-6272" class="menu-itam-list">
+                                        
+                                        <div class="billing-address">
+                                            <div><b>{{ order.name }}</b></div>
+                                            <div>{{ order.address }}</div>
+                                            <div>{{ order.city }} - {{ order.pin_code }}</div>
+                                            <div>{{ order.state }}, {{ order.country }}</div>
+                                            <div><b>Phone: </b>{{ order.phone }}</div>
+                                            <div><b>Email: </b>{{ order.email }}</div>
+                                            <div><b>Payment: </b>{{ order.payment_method }}</div>
+                                            <br>
+                                            <div><a href="{% url 'checkout' %}" class="btn btn-outline-danger">Edit</a></div>
+                                            <br>
+
+                                        </div>
+                                        
+                                    </div>
+
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Your order section -->
+                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                    <div class="tabs-holder horizontal">
+                        <ul class="stickynav-tabs nav nav-tabs">
+                            <li class="active"><a data-toggle="tab" href="#home"><i class="icon- icon-room_service"></i>Your Order</a></li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            <div id="home" class="tab-pane in active">
+                                <div class="menu-itam-holder">
+                                    
+                                    <div>
+
+                                        <table class="table">
+                                            <tbody>
+                                                {% for item in cart_items %}
+                                                <tr>
+                                                    <td><img src="{{ item.fooditem.image.url }}" width="40" alt="Food Image"></td>
+                                                    <td><b>{{ item.fooditem }}</b></td>
+                                                    <td>{{ item.quantity }}</td>
+                                                    <td>${{ item.fooditem.price }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+
+                                        <ul>
+                                            <li style="list-style-type: none;">
+                                                Subtotal
+                                                <span class="price float-right">
+                                                    <span class="currency">$</span>
+                                                    <span id="subtotal">{{ subtotal }}</span>
+                                                </span>
+                                            </li>
+
+                                            {% for key, value in tax_dict.items %}
+                                                {% for i, j in value.items %}
+                                                    <li style="list-style-type: none;">
+                                                        {{ key }} <small>({{ i }}%)</small>
+                                                        <span class="price float-right">
+                                                            <span class="currency">$</span>
+                                                            <span id="tax-{{ key }}">{{ j }}</span>
+                                                        </span>
+                                                    </li>
+                                                {% endfor %}
+                                            {% endfor %}
+
+
+                                            <li style="list-style-type: none; font-weight: 600;">
+                                                TOTAL
+                                                <span class="price float-right">
+                                                    <span class="currency">$</span>
+                                                    <span id="total">{{ grand_total }}</span>
+                                                </span>
+                                            </li>
+                                            <!-- Payment Method Selection -->
+                                            <h5>SELECT PAYMENT METHOD</h5>
+                                            <style>
+                                                .payment-method-icons label {
+                                                    display: inline-block;
+                                                    margin: 0 10px 10px 0;
+                                                    cursor: pointer;
+                                                    transition: transform 0.1s;
+                                                }
+                                                .payment-method-icons input[type="radio"] {
+                                                    display: none;
+                                                }
+                                                .payment-method-icons img {
+                                                    width: 60px;
+                                                    height: 40px;
+                                                    object-fit: contain;
+                                                    border: 2px solid transparent;
+                                                    border-radius: 8px;
+                                                    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+                                                    transition: border 0.2s, box-shadow 0.2s;
+                                                }
+                                                .payment-method-icons input[type="radio"]:checked + img {
+                                                    border: 2px solid #dc3545;
+                                                    box-shadow: 0 2px 8px rgba(220,53,69,0.15);
+                                                    background: #fff0f0;
+                                                }
+                                            </style>
+                                            <div class="payment-method-icons">
+                                                <label>
+                                                    <input type="radio" name="payment_method" value="PayPal">
+                                                    <img src="{% static 'images/PayPal.png' %}" alt="PayPal">
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="payment_method" value="RazorPay">
+                                                    <img src="{% static 'images/razorpay_logo.png' %}" alt="RazorPay">
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="payment_method" value="COD">
+                                                    <img src="{% static 'images/cod.png' %}" alt="Cash on Delivery">
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="payment_method" value="DebitCard">
+                                                    <img src="{% static 'images/debitcard.jpg' %}" alt="Debit Card">
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="payment_method" value="CreditCard">
+                                                    <img src="{% static 'images/credit.jpg' %}" alt="Credit Card">
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="payment_method" value="UPI">
+                                                    <img src="{% static 'images/upi.jpg' %}" alt="UPI">
+                                                </label>
+                                            </div>
+                                            <span class="text-danger" id="payment-method-error"></span>
+                                            <!-- End Payment Method Selection -->
+                                            <!-- PayPal Checkout Button (Always visible for testing) -->
+                                            <div id="paypal-button-container" style="min-height: 50px; border: 1px dashed #ccc; padding: 10px; margin: 10px 0;">
+                                                <p style="text-align: center; color: #666;">Loading PayPal button...</p>
+                                            </div>
+                                            <!-- Manual PayPal Button for Testing -->
+                                            <div style="margin: 10px 0;">
+                                                <button id="manual-paypal-btn" style="background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px;">
+                                                    ✅ Complete Payment (Test Mode)
+                                                </button>
+                                            </div>
+                                            <!-- RazorPay Button (Keep for future use) -->
+                                            <div id="rzp_payment_button" style="display: none;">
+                                                <button class="btn btn-danger w-100 p-2" id="rzp-button1">Pay with RazorPay</button>
+                                                <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+                                            </div>
+                                        </ul>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Main Section End -->
+
+
+<script>
+    function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+
+    var grand_total = "{{ grand_total }}"
+    var url = "{% url 'payments' %}"
+    var order_number = "{{ order.order_number }}"
+
+    // Debug order number
+    console.log('=== ORDER NUMBER DEBUG ===');
+    console.log('Order object:', {{ order|safe }});
+    console.log('Order number from template:', order_number);
+    console.log('Order number length:', order_number.length);
+    console.log('Order number type:', typeof order_number);
+
+    // Validate order number
+    if (!order_number || order_number === 'None' || order_number.trim() === '') {
+        console.error('ERROR: Order number is missing or empty!');
+        console.error('Order number value:', order_number);
+        console.error('Order object:', {{ order|safe }});
+        alert('Error: Order number is missing. Please try again.');
+    } else {
+        console.log('✅ Order number is valid:', order_number);
+    }
+    
+    // Try multiple methods to get CSRF token
+    let csrftoken = getCookie('csrftoken');
+    if (!csrftoken) {
+        csrftoken = '{{ csrf_token }}';
+    }
+    if (!csrftoken) {
+        const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        if (csrfInput) {
+            csrftoken = csrfInput.value;
+        }
+    }
+    
+    var order_complete = "{% url 'order_complete' %}"
+    
+    console.log('=== PAYMENT DEBUG INFO ===');
+    console.log('Grand Total:', grand_total);
+    console.log('Order Number:', order_number);
+    console.log('Payment URL:', url);
+    console.log('CSRF Token:', csrftoken);
+    console.log('Payment Method from Order:', "{{ order.payment_method }}");
+    console.log('PayPal Client ID:', "{{ PAYPAL_CLIENT_ID }}");
+    console.log('PayPal Client ID length:', "{{ PAYPAL_CLIENT_ID }}".length);
+    console.log('PayPal SDK Available:', typeof paypal !== 'undefined');
+    console.log('PayPal Button Container Exists:', document.getElementById('paypal-button-container') !== null);
+    
+    // Test if container exists immediately
+    const paypalContainer = document.getElementById('paypal-button-container');
+    if (paypalContainer) {
+        console.log('✅ PayPal container found:', paypalContainer);
+        paypalContainer.style.backgroundColor = '#f0f8ff'; // Light blue background for testing
+        
+        // Add immediate test button
+        setTimeout(function() {
+            paypalContainer.innerHTML = '<button onclick="testPayPalFlow()" style="background: #0070ba; color: white; padding: 12px; border: none; border-radius: 4px; width: 100%; cursor: pointer;">🔵 PayPal Test Button - Click Me!</button>';
+        }, 1000);
+    } else {
+        console.error('❌ PayPal container NOT found!');
+    }
+    
+    // Simple test function
+    window.testPayPalFlow = function() {
+        alert('PayPal container is working! Now let\'s test the actual payment flow...');
+        console.log('Testing payment with order:', order_number);
+        
+        // Test the sendTransaction function directly
+        if (typeof sendTransaction === 'function') {
+            sendTransaction('TEST_TRANSACTION_123', 'PayPal', 'COMPLETED');
+        } else {
+            console.error('sendTransaction function not found!');
+        }
+    }
+    
+    // Validate required data
+    if (!order_number) {
+        console.error('ERROR: Order number is missing!');
+        alert('Error: Order number is missing. Please try again.');
+    }
+    if (!grand_total) {
+        console.error('ERROR: Grand total is missing!');
+    }
+    
+    // Manual Payment Button Handler - Simulate Successful Payment
+    setTimeout(function() {
+        console.log('Looking for manual payment button...');
+        const manualBtn = document.getElementById('manual-paypal-btn');
+        console.log('Manual button found:', manualBtn);
+        
+        if (manualBtn) {
+            console.log('Attaching click handler to manual payment button');
+            manualBtn.addEventListener('click', function() {
+                console.log('Manual payment button clicked - simulating successful payment');
+                
+                // Check if order number is valid
+                if (!order_number || order_number === 'None' || order_number.trim() === '') {
+                    console.error('ERROR: Order number is missing!');
+                    swal("Payment Error", "Order number is missing. Please try again.", "error");
+                    return;
+                }
+                
+                // Show processing message
+                manualBtn.innerHTML = '⏳ Processing Payment...';
+                manualBtn.disabled = true;
+                
+                // Generate a mock transaction ID
+                const mockTransactionId = 'MOCK_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                // Use the payment method from the order
+                var paymentMethod = "{{ order.payment_method }}";
+                console.log('Using payment method:', paymentMethod);
+                
+                // Simulate a short delay then process payment
+                setTimeout(function() {
+                    console.log('Simulating successful payment with transaction ID:', mockTransactionId);
+                    console.log('Payment method:', paymentMethod);
+                    console.log('Order number:', order_number);
+                    
+                    // Call sendTransaction with mock data for successful payment
+                    sendTransaction(mockTransactionId, paymentMethod, 'COMPLETED');
+                }, 1500); // 1.5 second delay to simulate processing
+            });
+            
+            console.log('✅ Manual payment button handler attached successfully');
+        } else {
+            console.error('❌ Manual payment button still not found after delay');
+            console.log('Available elements with IDs:', document.querySelectorAll('[id]'));
+        }
+        
+        // Add a test redirect button for debugging
+        const testRedirectBtn = document.createElement('button');
+        testRedirectBtn.innerHTML = '🔗 Test Redirect to Order Complete';
+        testRedirectBtn.className = 'btn btn-warning btn-sm ml-2';
+        testRedirectBtn.onclick = function() {
+            console.log('Testing redirect to order complete page...');
+            var testUrl = order_complete + '?order_no=' + order_number + '&trans_id=TEST_REDIRECT';
+            console.log('Test redirect URL:', testUrl);
+            window.location.href = testUrl;
+        };
+        
+        // Add a debug info panel
+        const debugPanel = document.createElement('div');
+        debugPanel.innerHTML = `
+            <div style="background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; margin: 20px 0; border-radius: 5px;">
+                <h5>🐛 Debug Information</h5>
+                <p><strong>Order Number:</strong> ${order_number}</p>
+                <p><strong>Order Complete URL:</strong> ${order_complete}</p>
+                <p><strong>Test Redirect URL:</strong> ${order_complete}?order_no=${order_number}&trans_id=TEST_REDIRECT</p>
+                <button onclick="window.location.href='${order_complete}?order_no=${order_number}&trans_id=TEST_REDIRECT'" 
+                        class="btn btn-success btn-sm">🎯 Test Redirect Now</button>
+            </div>
+        `;
+        
+        // Add the test button and debug panel to the page
+        const container = document.querySelector('.container');
+        if (container) {
+            container.appendChild(testRedirectBtn);
+            container.appendChild(debugPanel);
+        }
+    }, 2000); // Increased delay to ensure DOM is fully loaded
+    
+    // Check if PayPal payment method is selected
+    console.log('Current payment method: {{ order.payment_method }}');
+    console.log('PayPal SDK disabled for testing - using manual payment only');
+    
+    // Disable PayPal SDK rendering to prevent interference with manual button
+    /*
+    // Render the PayPal button into #paypal-button-container
+    if (typeof paypal !== 'undefined') {
+        let paymentInProgress = false; // Prevent double payments
+        console.log('PayPal SDK loaded successfully - creating buttons');
+        
+        // Clear the loading message
+        document.getElementById('paypal-button-container').innerHTML = '';
+        
+        paypal.Buttons({
+            // Set up the transaction
+            createOrder: function(data, actions) {
+                if (paymentInProgress) {
+                    console.log('Payment already in progress, preventing duplicate');
+                    return false;
+                }
+                
+                console.log('Creating PayPal order with amount:', grand_total);
+                paymentInProgress = true;
+                
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: grand_total
+                        }
+                    }]
+                });
+            },
+
+            // Finalize the transaction
+            onApprove: function(data, actions) {
+                console.log('PayPal payment approved:', data);
+                
+                // Disable the PayPal button container to prevent multiple clicks
+                const element = document.getElementById('paypal-button-container');
+                element.style.pointerEvents = 'none';
+                element.innerHTML = '<h4 class="text-center"><i class="fa fa-spinner fa-spin"></i> Processing payment...</h4>';
+                
+                return actions.order.capture().then(function(orderData) {
+                    // Successful capture! For demo purposes:
+                    console.log('PayPal order captured:', orderData);
+                    var transaction = orderData.purchase_units[0].payments.captures[0];
+
+                    var transaction_id = transaction.id;
+                    // Use transaction status for more accurate status reporting
+                    var status = transaction.status; // This will be 'COMPLETED' for successful payments
+                    var payment_method = 'PayPal';
+                    
+                    console.log('Sending transaction data:', {
+                        transaction_id: transaction_id, 
+                        payment_method: payment_method, 
+                        status: status,
+                        orderData_status: orderData.status,
+                        transaction_status: transaction.status
+                    });
+                    
+                    // Add try-catch around sendTransaction call
+                    try {
+                        console.log('Calling sendTransaction...');
+                        sendTransaction(transaction_id, payment_method, status);
+                    } catch (error) {
+                        console.error('Error calling sendTransaction:', error);
+                    }
+                });
+            },
+            
+            // Handle errors
+            onError: function(err) {
+                console.error('PayPal error:', err);
+                paymentInProgress = false; // Reset flag on error
+                swal("Payment Failed", "PayPal payment failed. Please try again.", "error");
+            },
+            
+            // Handle cancellation
+            onCancel: function(data) {
+                console.log('PayPal payment cancelled:', data);
+                paymentInProgress = false; // Reset flag on cancellation
+                swal("Payment Cancelled", "PayPal payment was cancelled.", "info");
+            }
+
+        }).render('#paypal-button-container');
+    } else {
+        console.error('PayPal SDK not loaded');
+        document.getElementById('paypal-button-container').innerHTML = '<p style="color:red; text-align: center;">PayPal SDK failed to load. Please refresh the page.</p>';
+    }
+    */
+
+    // PayPal SDK disabled for testing - using manual payment button instead
+    console.log('PayPal SDK integration commented out for testing');
+
+    /*
+    // Add a timeout to check if PayPal button rendered
+    setTimeout(function() {
+        const container = document.getElementById('paypal-button-container');
+        if (container && container.innerHTML.includes('Loading PayPal button')) {
+            console.error('PayPal button failed to render after 5 seconds');
+            container.innerHTML = '<p style="color:red; text-align: center;">PayPal button failed to load. Please check console for errors.</p>';
+        }
+    }, 5000);
+    */
+
+    // RazorPay Payment Gateway
+    var options = {
+            "key": "{{ RZP_KEY_ID }}", // Enter the Key ID generated from the Dashboard
+            "amount": "{{ rzp_amount }}", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+            "currency": "INR",
+            "name": "FoodOnline",
+            "description": "FoodOnline - Multi Vendor Restaurant Marketplace",
+            "image": "{% static 'logo/foodOnlineLogo.png' %}",
+            "order_id": "{{ rzp_order_id }}", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+            "handler": function (response){
+                // alert(response.razorpay_payment_id);
+                // alert(response.razorpay_order_id);
+                // alert(response.razorpay_signature)
+                // Replace the above to show a success message within this page, e.g.
+                const element = document.getElementById('rzp_payment_button');
+                element.innerHTML = '';
+                element.innerHTML = '<h4 class="text-center"><i class="fa fa-spinner fa-spin"></i> Processing payment...</h4>';
+
+                var transaction_id = response.razorpay_payment_id
+                var payment_method = 'RazorPay'
+                var status = 'COMPLETED' // changed from 'Success' to 'COMPLETED' for demo
+                sendTransaction(transaction_id, payment_method, status)
+            },
+            "prefill": {
+                "name": "{{ order.name }}",
+                "email": "{{ order.email }}",
+                "contact": "{{ order.phone }}"
+            },
+            "notes": {
+                "address": "{{ order.address }}"
+            },
+            "theme": {
+                "color": "#dc3545"
+            }
+        };
+        var rzp1 = new Razorpay(options);
+        rzp1.on('payment.failed', function (response){
+                alert(response.error.code);
+                alert(response.error.description);
+                alert(response.error.source);
+                alert(response.error.step);
+                alert(response.error.reason);
+                alert(response.error.metadata.order_id);
+                alert(response.error.metadata.payment_id);
+        });
+    document.getElementById('rzp-button1').onclick = function(e){
+        rzp1.open();
+        e.preventDefault();
+    }
+    // RazorPay Payment Gateway
+
+
+    // Send the data to payments view to store in the database
+    function sendTransaction(transaction_id, payment_method, status) {
+        console.log('Starting sendTransaction with:', {
+            transaction_id: transaction_id,
+            payment_method: payment_method, 
+            status: status,
+            order_number: order_number,
+            url: url
+        });
+        
+    // Validate all required data
+    if (!transaction_id || !payment_method || !status || !order_number || !url) {
+        console.error('=== MISSING REQUIRED DATA ===');
+        console.error('transaction_id:', transaction_id);
+        console.error('payment_method:', payment_method);
+        console.error('status:', status);
+        console.error('order_number:', order_number);
+        console.error('url:', url);
+        swal("Payment Error", "Missing required payment data. Please try again.", "error");
+        return;
+    }        console.log('All validation passed, sending AJAX request...');
+        
+        $.ajax({
+            type: 'POST',
+            url: url,
+            timeout: 30000,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            data: {
+                'order_number': order_number,
+                'transaction_id': transaction_id,
+                'payment_method': payment_method,
+                'status': status
+            },
+            beforeSend: function(xhr, settings) {
+                console.log('AJAX beforeSend triggered');
+                console.log('Request URL:', settings.url);
+                console.log('Request data:', settings.data);
+            },
+            success: function(response) {
+                console.log('=== PAYMENT RESPONSE RECEIVED ===');
+                console.log('Full response object:', response);
+                console.log('Response type:', typeof response);
+                console.log('Response.success:', response.success);
+                console.log('Response.error:', response.error);
+                console.log('Response.order_number:', response.order_number);
+                console.log('Response.message:', response.message);
+                
+                // Check if response indicates an error first
+                if (response.error) {
+                    console.error('Payment processing failed:', response.error);
+                    swal("Payment Error", response.message || 'Payment processing failed', "error");
+                    const element = document.getElementById('paypal-button-container');
+                    if (element) {
+                        element.style.pointerEvents = 'auto';
+                        location.reload();
+                    }
+                    return;
+                }
+                
+                // Check if we have a valid success response
+                if (response.success || response.order_number) {
+                    console.log('Payment successful! Showing success message');
+                    var redirectUrl = order_complete + '?order_no=' + response.order_number + '&trans_id=' + response.transaction_id;
+                    console.log('Redirect URL will be:', redirectUrl);
+                    
+                    // Show success message and redirect
+                    console.log('About to show SweetAlert and redirect...');
+                    
+                    // First, try immediate redirect
+                    console.log('Attempting immediate redirect to:', redirectUrl);
+                    window.location.href = redirectUrl;
+                    
+                    // Also show SweetAlert as backup
+                    swal("Payment Successful!", "Your order has been placed successfully. Order ID: " + response.order_number, "success")
+                    .then(function() {
+                        console.log('SweetAlert closed, redirect should have already happened');
+                    })
+                    .catch(function() {
+                        console.log('SweetAlert failed, but redirect should have already happened');
+                    });
+                } else {
+                    console.error('Unexpected response format:', response);
+                    swal("Payment Error", "Received unexpected response from server. Please contact support.", "error");
+                    const element = document.getElementById('paypal-button-container');
+                    if (element) {
+                        element.style.pointerEvents = 'auto';
+                        location.reload();
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('=== AJAX ERROR OCCURRED ===');
+                console.error('XHR status:', xhr.status);
+                console.error('XHR statusText:', xhr.statusText);
+                console.error('XHR responseText:', xhr.responseText);
+                console.error('Error status:', status);
+                console.error('Error thrown:', error);
+                console.error('Full XHR object:', xhr);
+                
+                // Try to parse the response if it's JSON
+                let errorMessage = "There was an error processing your payment. Check console for details.";
+                try {
+                    const responseJson = JSON.parse(xhr.responseText);
+                    if (responseJson.message) {
+                        errorMessage = responseJson.message;
+                    }
+                    console.error('Parsed error response:', responseJson);
+                } catch (e) {
+                    console.error('Could not parse error response as JSON');
+                }
+                
+                swal("Payment Error", errorMessage, "error");
+                
+                const element = document.getElementById('paypal-button-container');
+                if (element) {
+                    element.style.pointerEvents = 'auto';
+                    location.reload();
+                }
+            },
+            complete: function(xhr, status) {
+                console.log('AJAX COMPLETE - Status:', status);
+            }
+        });
+    }
+</script>
+{% endblock %}
