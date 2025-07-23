@@ -5,9 +5,12 @@ from .forms import VendorForm,OpeningHourForm
 from accounts.models import UserProfile
 from vendor.models import Vendor
 from django.contrib import messages
+from orders.models import Order, OrderedFood
+from orders.utils import order_total_by_vendor
 
 from django.contrib.auth.decorators import login_required
 from accounts.views import user_passes_test, check_role_vendor
+from django.contrib.auth import update_session_auth_hash
 
 from unicodedata import category
 from menu.forms import CategoryForm, FoodItemForm
@@ -17,6 +20,8 @@ from django.db import IntegrityError
 from django.forms import inlineformset_factory
 from .models import OpeningHour, Vendor
 from .models import DAYS
+from django.db.models import Sum
+from django.utils import timezone
 
 
 def get_vendor(request):
@@ -278,3 +283,143 @@ def remove_opening_hours(request, pk=None):
             hour = get_object_or_404(OpeningHour, pk=pk)
             hour.delete()
             return JsonResponse({'status': 'success', 'id': pk})
+
+
+# Vendor Order Management Views
+@login_required(login_url='login')
+@user_passes_test(check_role_vendor)
+def vendor_orders(request):
+    """Vendor's order management page"""
+    vendor = get_vendor(request)
+    
+    # Get all orders for this vendor
+    vendor_orders = Order.objects.filter(
+        vendors=vendor,
+        is_ordered=True
+    )
+    
+    context = {
+        'vendor': vendor,
+        'orders': vendor_orders,
+    }
+    return render(request, 'vendor/vendor_orders.html', context)
+
+
+@login_required(login_url='login')
+@user_passes_test(check_role_vendor)
+def vendor_order_detail(request, order_number):
+    """Vendor's order detail page"""
+    vendor = get_vendor(request)
+    
+    try:
+        order = Order.objects.get(
+            order_number=order_number,
+            vendors=vendor,
+            is_ordered=True
+        )
+        
+        # Get ordered food items for this vendor only
+        ordered_food = OrderedFood.objects.filter(
+            order=order,
+            fooditem__vendor=vendor
+        )
+        
+        # Calculate order totals for this vendor
+        order_data = order_total_by_vendor(order, vendor.id)
+        
+        context = {
+            'vendor': vendor,
+            'order': order,
+            'ordered_food': ordered_food,
+            'subtotal': order_data['subtotal'],
+            'tax_data': order_data['tax_dict'],
+            'grand_total': order_data['grand_total'],
+        }
+        return render(request, 'vendor/vendor_order_detail.html', context)
+        
+    except Order.DoesNotExist:
+        messages.error(request, 'Order not found.')
+        return redirect('vendor_orders')
+
+
+@login_required(login_url='login')
+@user_passes_test(check_role_vendor)
+def update_order_status(request, order_number):
+    """Update order status (Accept/Reject/Complete)"""
+    if request.method == 'POST':
+        vendor = get_vendor(request)
+        new_status = request.POST.get('status')
+        
+        try:
+            order = Order.objects.get(
+                order_number=order_number,
+                vendors=vendor,
+                is_ordered=True
+            )
+            
+            # Update order status
+            if new_status in ['Accepted', 'Rejected', 'Completed']:
+                order.status = new_status
+                order.save()
+                messages.success(request, f'Order status updated to {new_status}')
+            else:
+                messages.error(request, 'Invalid status')
+                
+        except Order.DoesNotExist:
+            messages.error(request, 'Order not found')
+    
+    return redirect('vendor_order_detail', order_number=order_number)
+
+def vendor_earnings(request):
+    return render(request, 'vendor/vendor_earnings.html')
+
+def vendor_statement(request):
+    return render(request, 'vendor/vendor_statement.html')
+
+@login_required
+def vendor_change_password(request):
+    if request.method == 'POST':
+        old_password = request.POST.get('old_password')
+        new_password1 = request.POST.get('new_password1')
+        new_password2 = request.POST.get('new_password2')
+        user = request.user
+        if not user.check_password(old_password):
+            messages.error(request, 'Old password is incorrect.')
+        elif new_password1 != new_password2:
+            messages.error(request, 'New passwords do not match.')
+        elif len(new_password1) < 8:
+            messages.error(request, 'New password must be at least 8 characters.')
+        else:
+            user.set_password(new_password1)
+            user.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Password changed successfully!')
+    return render(request, 'vendor/vendor_change_password.html')
+
+@login_required(login_url='login')
+@user_passes_test(check_role_vendor)
+def vendordashboard(request):
+    vendor = get_vendor(request)
+    # Total revenue (all time)
+    all_orders = Order.objects.filter(vendors=vendor, is_ordered=True)
+    total_revenue = 0
+    for order in all_orders:
+        order_data = order_total_by_vendor(order, vendor.id)
+        total_revenue += order_data['grand_total']
+    # Current month revenue
+    now = timezone.now()
+    month_orders = all_orders.filter(created_at__year=now.year, created_at__month=now.month)
+    month_revenue = 0
+    for order in month_orders:
+        order_data = order_total_by_vendor(order, vendor.id)
+        month_revenue += order_data['grand_total']
+    # Recent orders
+    recent_orders = all_orders.order_by('-created_at')[:5]
+    context = {
+        'vendor': vendor,
+        'total_orders': all_orders.count(),
+        'total_revenue': total_revenue,
+        'month_revenue': month_revenue,
+        'recent_orders': recent_orders,
+    }
+    return render(request, 'accounts/vendorDashboard.html', context)

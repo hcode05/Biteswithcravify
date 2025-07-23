@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load vendor_extras %}
 
 {% block content %}
 
@@ -21,53 +22,56 @@
 							<div class="user-dashboard loader-holder">
 								<div class="user-holder">
 
-									<h5 class ="text-uppercase"></h5>
+									<h5 class="text-uppercase mb-4">Dashboard Overview</h5>
+									
+									<div class="row mb-4">
 										<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 											<div class="card">
 												<div class="card-header">
-													Total Orders
+													<i class="fa fa-shopping-cart"></i> Total Orders
 												</div>
 												<div class="card-body text-center">
-													<a href="#"></h5 class="card-title">$50.00</a>
+													<h3 class="card-title text-primary">{{ total_orders }}</h3>
+													<p class="text-muted">All time orders</p>
 												</div>
 											</div>
 										</div>
-									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+										<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 											<div class="card">
 												<div class="card-header">
-													Total Revenue
+													<i class="fa fa-money"></i> Total Revenue
 												</div>
 												<div class="card-body text-center">
-													<a href="#"></h5 class="card-title">$165.00</a>
+													<h3 class="card-title text-success">${{ total_revenue|floatformat:2 }}</h3>
+													<p class="text-muted">All time earnings</p>
+													<h6 class="card-title text-info mt-2">This Month: ${{ month_revenue|floatformat:2 }}</h6>
 												</div>
 											</div>
 										</div>
-									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+										<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 											<div class="card">
 												<div class="card-header">
-													This Month
+													<i class="fa fa-building"></i> Restaurant Status
 												</div>
 												<div class="card-body text-center">
-													<a href="#"></h5 class="card-title">$5263.00</a>
+													<h3 class="card-title {% if vendor.is_open %}text-success{% else %}text-danger{% endif %}">
+														{% if vendor.is_open %}Open{% else %}Closed{% endif %}
+													</h3>
+													<p class="text-muted">Current status</p>
 												</div>
 											</div>
 										</div>
+									</div>
 									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 										<div class="row">
 											<div class="element-title has-border right-filters-row">
 												<h5>Recent Orders</h5>
 												<div class="right-filters row pull-right">
 													<div class="col-lg-6 col-md-6 col-xs-6">
-														<div class="input-field">
-															<select class="chosen-select-no-single">
-																<option selected="selected" value="">Select Orders Status</option>
-																<option value="Processing">Processing</option>
-																<option value="Cancelled">Cancelled</option>
-																<option value="Completed">Completed</option>
-															</select>
-														</div>
+														<a href="{% url 'vendor_orders' %}" class="btn btn-outline-primary btn-sm">
+															<i class="fa fa-list"></i> View All Orders
+														</a>
 													</div>
-													
 												</div>
 											</div>
 										</div>
@@ -78,40 +82,59 @@
 												<div class="responsive-table">
 													<ul class="table-generic">
 														<li class="order-heading-titles">
-															<div>Order id</div>
+															<div>Order ID</div>
+															<div>Customer</div>
 															<div>Date</div>
-															<div>Total Price</div>
-															<div>Charges</div>
-															<div>Received</div>
+															<div>Total</div>
 															<div>Status</div>
-														</li>
-														<li class="order-heading-titles">
-															<div><a href="#" data-toggle="modal" data-target="#order-det-22606">order-22606</a></div>
-															<div>Apr 9,2020</div>
-															<div>£ 38.99</div>
-															<div>£ 3.90</div>
-															<div>£ 35.09</div>
-															<div><span class="order-status" style="background-color: #047a06;">Completed</span></div>
+															<div>Action</div>
 														</li>
 														
-														
-														
-														<li class="order-heading-titles">
-															<div><a href="#" data-toggle="modal" data-target="#order-det-22606">order-22583</a></div>
-															<div>Apr 9,2020</div>
-															<div>£ 26.22</div>
-															<div>£ 2.62</div>
-															<div>£ 23.60</div>
-															<div><span class="order-status" style="background-color: #1e73be;">Processing</span></div>
-														</li>
-														<li class="order-heading-titles">
-															<div><a href="#" data-toggle="modal" data-target="#order-det-22606">order-22493</a></div>
-															<div>Apr 2,2020</div>
-															<div>£ 28.24</div>
-															<div>£ 2.82</div>
-															<div>£ 25.42</div>
-															<div><span class="order-status" style="background-color: #047a06;">Completed</span></div>
-														</li>
+														{% if recent_orders %}
+															{% for order in recent_orders %}
+															<li class="order-heading-titles">
+																<div>
+																	<a href="{% url 'vendor_order_detail' order.order_number %}" class="text-primary">
+																		{{ order.order_number }}
+																	</a>
+																</div>
+																<div>
+																	<strong>{{ order.name }}</strong><br>
+																	<small class="text-muted">{{ order.phone }}</small>
+																</div>
+																<div>{{ order.created_at|date:"M d, Y" }}</div>
+																<div>
+																	{% with order_data=order|order_total_by_vendor_filter:vendor.id %}
+																		${{ order_data.grand_total }}
+																	{% endwith %}
+																</div>
+																<div>
+																	<span class="order-status 
+																		{% if order.status == 'Accepted' %}bg-success
+																		{% elif order.status == 'Cancelled' %}bg-danger
+																		{% elif order.status == 'Completed' %}bg-info
+																		{% else %}bg-warning{% endif %}">
+																		{{ order.status }}
+																	</span>
+																</div>
+																<div>
+																	<a href="{% url 'vendor_order_detail' order.order_number %}" 
+																	   class="btn btn-sm btn-outline-primary">
+																		<i class="fa fa-eye"></i> View
+																	</a>
+																</div>
+															</li>
+															{% endfor %}
+														{% else %}
+															<li class="order-heading-titles">
+																<div colspan="6" class="text-center py-4">
+																	<p class="text-muted mb-0">No orders yet</p>
+																	<a href="{% url 'menu_builder' %}" class="btn btn-sm btn-primary mt-2">
+																		<i class="fa fa-plus"></i> Add Menu Items
+																	</a>
+																</div>
+															</li>
+														{% endif %}
 													</ul>
 
 												</div>												

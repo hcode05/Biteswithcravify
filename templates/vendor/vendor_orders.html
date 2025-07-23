@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load vendor_extras %}
+
+{% block content %}
+{% include 'includes/alerts.html' %}
+
+<!-- Main Section Start -->
+<div class="main-section">
+    
+    {% include 'includes/cover.html' %}
+    <div class="page-section account-header buyer-logged-in">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                    <!-- Load the sidebar here -->
+                    {% include 'includes/v_sidebar.html' %}
+                </div>
+                <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+                    <div class="user-dashboard loader-holder">
+                        <div class="user-holder">
+                            
+                            <h5 class="text-uppercase">My Orders</h5>
+                            <p class="text-muted mb-4">Manage all orders for your restaurant.</p>
+
+                            {% if orders %}
+                                <div class="row">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <div class="user-orders-list">
+                                            <div class="responsive-table">
+                                                <table id="orders-table" class="table table-bordered table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Order ID</th>
+                                                            <th>Customer</th>
+                                                            <th>Date</th>
+                                                            <th>Total</th>
+                                                            <th>Status</th>
+                                                            <th>Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for order in orders %}
+                                                        <tr>
+                                                            <td><a href="{% url 'vendor_order_detail' order.order_number %}" class="text-primary">{{ order.order_number }}</a></td>
+                                                            <td><strong>{{ order.name }}</strong><br><small class="text-muted">{{ order.phone }}</small></td>
+                                                            <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                                            <td>{% with order_data=order|order_total_by_vendor_filter:vendor.id %}${{ order_data.grand_total }}{% endwith %}</td>
+                                                            <td>
+                                                                <span class="order-status 
+                                                                    {% if order.status == 'Accepted' %}bg-success
+                                                                    {% elif order.status == 'Cancelled' %}bg-danger
+                                                                    {% elif order.status == 'Completed' %}bg-info
+                                                                    {% else %}bg-warning{% endif %}">
+                                                                    {{ order.status }}
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <a href="{% url 'vendor_order_detail' order.order_number %}" class="btn btn-sm btn-outline-primary">
+                                                                    <i class="fa fa-eye"></i> View Details
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                                <script>
+                                                $(document).ready(function() {
+                                                    $('#orders-table').DataTable();
+                                                });
+                                                </script>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="text-center p-5">
+                                    <div class="empty-orders">
+                                        <i class="fa fa-shopping-cart fa-3x text-muted mb-3"></i>
+                                        <h4>No Orders Yet</h4>
+                                        <p class="text-muted">You haven't received any orders yet.</p>
+                                        <a href="{% url 'menu_builder' %}" class="btn btn-primary">
+                                            <i class="fa fa-plus"></i> Add Menu Items
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Main Section End -->
+
+<style>
+.order-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.bg-success { background-color: #28a745; }
+.bg-danger { background-color: #dc3545; }
+.bg-info { background-color: #17a2b8; }
+.bg-warning { background-color: #ffc107; color: #212529; }
+
+.empty-orders {
+    padding: 40px 20px;
+}
+
+.table-generic li {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.table-generic li:first-child {
+    font-weight: bold;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table-generic li > div {
+    flex: 1;
+    padding: 0 10px;
+}
+
+.table-generic li > div:last-child {
+    flex: 0 0 auto;
+}
+</style>
+
+{% endblock %} 

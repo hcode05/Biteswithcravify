@@ -24,7 +24,15 @@ urlpatterns = [
     path('opening-hours/add/', views.add_opening_hours, name='add_opening_hours'),
     path('opening-hours/remove/<int:pk>/', views.remove_opening_hours, name='remove_opening_hours'),
 
-    # path('order_detail/<int:order_number>/', views.order_detail, name='vendor_order_detail'),
-    # path('my_orders/', views.my_orders, name='vendor_my_orders'),
+    # Order Management
+    path('orders/', views.vendor_orders, name='vendor_orders'),
+    path('orders/<str:order_number>/', views.vendor_order_detail, name='vendor_order_detail'),
+    path('orders/<str:order_number>/update-status/', views.update_order_status, name='update_order_status'),
 
+]
+
+urlpatterns += [
+    path('earnings/', views.vendor_earnings, name='vendor_earnings'),
+    path('statement/', views.vendor_statement, name='vendor_statement'),
+    path('change-password/', views.vendor_change_password, name='vendor_change_password'),
 ]

@@ -208,7 +208,35 @@ def custdashboard(request):
 def vendordashboard(request):
     try:
         vendor = Vendor.objects.get(user=request.user)
-        context = {'vendor': vendor}
+        
+        # Get orders for this vendor
+        from orders.models import Order, OrderedFood
+        from orders.utils import order_total_by_vendor
+        
+        # Get all orders that contain items from this vendor
+        vendor_orders = Order.objects.filter(
+            vendors=vendor,
+            is_ordered=True
+        ).order_by('-created_at')
+        
+        # Get recent orders (last 5)
+        recent_orders = vendor_orders[:5]
+        
+        # Calculate total orders count
+        total_orders = vendor_orders.count()
+        
+        # Calculate total revenue
+        total_revenue = 0
+        for order in vendor_orders:
+            order_data = order_total_by_vendor(order, vendor.id)
+            total_revenue += order_data['grand_total']
+        
+        context = {
+            'vendor': vendor,
+            'recent_orders': recent_orders,
+            'total_orders': total_orders,
+            'total_revenue': total_revenue,
+        }
         return render(request, 'accounts/vendorDashboard.html', context)
     except Vendor.DoesNotExist:
         return redirect('myAccount')

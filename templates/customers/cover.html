@@ -25,6 +25,10 @@
                                 <p>{{ user.phone_number }}</p>
                                 <i class="icon-envelope"></i>
                                 <p>{{ user.email }}</p>
+                                {% if user_profile.address %}
+                                <i class="icon-location"></i>
+                                <p>{{ user_profile.address }}</p>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

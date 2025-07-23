@@ -143,7 +143,10 @@ def place_order(request):
 
         else:
             print(form.errors)
-    return render(request, 'orders/place_order.html')
+            # Optionally, re-render the form with errors (not payment page)
+            return redirect('marketplace')
+    # For GET requests, do not render the payment page with an invalid order
+    return redirect('marketplace')
 
 
 @login_required(login_url='login')
@@ -340,6 +343,13 @@ def payments(request):
                 # Don't return error - continue with response
 
             # RETURN BACK TO AJAX WITH THE STATUS SUCCESS OR FAILURE
+            # Final defensive check before returning success
+            if not all([order_number, transaction_id, status, order.status, order.is_ordered]):
+                print(f"DEBUG: Final check failed before returning success. Data: order_number={order_number}, transaction_id={transaction_id}, status={status}, order_status={order.status}, is_ordered={order.is_ordered}")
+                return JsonResponse({
+                    'error': 'Internal error',
+                    'message': 'Order processed but response data is incomplete. Please contact support.'
+                }, status=500)
             response = {
                 'order_number': order_number,
                 'transaction_id': transaction_id,

@@ -100,69 +100,11 @@
                                                     <span id="total">{{ grand_total }}</span>
                                                 </span>
                                             </li>
-                                            <!-- Payment Method Selection -->
-                                            <h5>SELECT PAYMENT METHOD</h5>
-                                            <style>
-                                                .payment-method-icons label {
-                                                    display: inline-block;
-                                                    margin: 0 10px 10px 0;
-                                                    cursor: pointer;
-                                                    transition: transform 0.1s;
-                                                }
-                                                .payment-method-icons input[type="radio"] {
-                                                    display: none;
-                                                }
-                                                .payment-method-icons img {
-                                                    width: 60px;
-                                                    height: 40px;
-                                                    object-fit: contain;
-                                                    border: 2px solid transparent;
-                                                    border-radius: 8px;
-                                                    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-                                                    transition: border 0.2s, box-shadow 0.2s;
-                                                }
-                                                .payment-method-icons input[type="radio"]:checked + img {
-                                                    border: 2px solid #dc3545;
-                                                    box-shadow: 0 2px 8px rgba(220,53,69,0.15);
-                                                    background: #fff0f0;
-                                                }
-                                            </style>
-                                            <div class="payment-method-icons">
-                                                <label>
-                                                    <input type="radio" name="payment_method" value="PayPal">
-                                                    <img src="{% static 'images/PayPal.png' %}" alt="PayPal">
-                                                </label>
-                                                <label>
-                                                    <input type="radio" name="payment_method" value="RazorPay">
-                                                    <img src="{% static 'images/razorpay_logo.png' %}" alt="RazorPay">
-                                                </label>
-                                                <label>
-                                                    <input type="radio" name="payment_method" value="COD">
-                                                    <img src="{% static 'images/cod.png' %}" alt="Cash on Delivery">
-                                                </label>
-                                                <label>
-                                                    <input type="radio" name="payment_method" value="DebitCard">
-                                                    <img src="{% static 'images/debitcard.jpg' %}" alt="Debit Card">
-                                                </label>
-                                                <label>
-                                                    <input type="radio" name="payment_method" value="CreditCard">
-                                                    <img src="{% static 'images/credit.jpg' %}" alt="Credit Card">
-                                                </label>
-                                                <label>
-                                                    <input type="radio" name="payment_method" value="UPI">
-                                                    <img src="{% static 'images/upi.jpg' %}" alt="UPI">
-                                                </label>
-                                            </div>
-                                            <span class="text-danger" id="payment-method-error"></span>
-                                            <!-- End Payment Method Selection -->
-                                            <!-- PayPal Checkout Button (Always visible for testing) -->
-                                            <div id="paypal-button-container" style="min-height: 50px; border: 1px dashed #ccc; padding: 10px; margin: 10px 0;">
-                                                <p style="text-align: center; color: #666;">Loading PayPal button...</p>
-                                            </div>
-                                            <!-- Manual PayPal Button for Testing -->
+                                            <!-- Only display the selected payment method in the summary (already shown as {{ order.payment_method }}) -->
+                                            <!-- Keep the 'Complete Payment' button for finalizing payment. -->
                                             <div style="margin: 10px 0;">
-                                                <button id="manual-paypal-btn" style="background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px;">
-                                                    ✅ Complete Payment (Test Mode)
+                                                <button id="complete-payment-btn" style="background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px;">
+                                                    ✓ Complete Payment
                                                 </button>
                                             </div>
                                             <!-- RazorPay Button (Keep for future use) -->
@@ -209,23 +151,6 @@
     var url = "{% url 'payments' %}"
     var order_number = "{{ order.order_number }}"
 
-    // Debug order number
-    console.log('=== ORDER NUMBER DEBUG ===');
-    console.log('Order object:', {{ order|safe }});
-    console.log('Order number from template:', order_number);
-    console.log('Order number length:', order_number.length);
-    console.log('Order number type:', typeof order_number);
-
-    // Validate order number
-    if (!order_number || order_number === 'None' || order_number.trim() === '') {
-        console.error('ERROR: Order number is missing or empty!');
-        console.error('Order number value:', order_number);
-        console.error('Order object:', {{ order|safe }});
-        alert('Error: Order number is missing. Please try again.');
-    } else {
-        console.log('✅ Order number is valid:', order_number);
-    }
-    
     // Try multiple methods to get CSRF token
     let csrftoken = getCookie('csrftoken');
     if (!csrftoken) {
@@ -250,120 +175,6 @@
     console.log('PayPal Client ID length:', "{{ PAYPAL_CLIENT_ID }}".length);
     console.log('PayPal SDK Available:', typeof paypal !== 'undefined');
     console.log('PayPal Button Container Exists:', document.getElementById('paypal-button-container') !== null);
-    
-    // Test if container exists immediately
-    const paypalContainer = document.getElementById('paypal-button-container');
-    if (paypalContainer) {
-        console.log('✅ PayPal container found:', paypalContainer);
-        paypalContainer.style.backgroundColor = '#f0f8ff'; // Light blue background for testing
-        
-        // Add immediate test button
-        setTimeout(function() {
-            paypalContainer.innerHTML = '<button onclick="testPayPalFlow()" style="background: #0070ba; color: white; padding: 12px; border: none; border-radius: 4px; width: 100%; cursor: pointer;">🔵 PayPal Test Button - Click Me!</button>';
-        }, 1000);
-    } else {
-        console.error('❌ PayPal container NOT found!');
-    }
-    
-    // Simple test function
-    window.testPayPalFlow = function() {
-        alert('PayPal container is working! Now let\'s test the actual payment flow...');
-        console.log('Testing payment with order:', order_number);
-        
-        // Test the sendTransaction function directly
-        if (typeof sendTransaction === 'function') {
-            sendTransaction('TEST_TRANSACTION_123', 'PayPal', 'COMPLETED');
-        } else {
-            console.error('sendTransaction function not found!');
-        }
-    }
-    
-    // Validate required data
-    if (!order_number) {
-        console.error('ERROR: Order number is missing!');
-        alert('Error: Order number is missing. Please try again.');
-    }
-    if (!grand_total) {
-        console.error('ERROR: Grand total is missing!');
-    }
-    
-    // Manual Payment Button Handler - Simulate Successful Payment
-    setTimeout(function() {
-        console.log('Looking for manual payment button...');
-        const manualBtn = document.getElementById('manual-paypal-btn');
-        console.log('Manual button found:', manualBtn);
-        
-        if (manualBtn) {
-            console.log('Attaching click handler to manual payment button');
-            manualBtn.addEventListener('click', function() {
-                console.log('Manual payment button clicked - simulating successful payment');
-                
-                // Check if order number is valid
-                if (!order_number || order_number === 'None' || order_number.trim() === '') {
-                    console.error('ERROR: Order number is missing!');
-                    swal("Payment Error", "Order number is missing. Please try again.", "error");
-                    return;
-                }
-                
-                // Show processing message
-                manualBtn.innerHTML = '⏳ Processing Payment...';
-                manualBtn.disabled = true;
-                
-                // Generate a mock transaction ID
-                const mockTransactionId = 'MOCK_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                
-                // Use the payment method from the order
-                var paymentMethod = "{{ order.payment_method }}";
-                console.log('Using payment method:', paymentMethod);
-                
-                // Simulate a short delay then process payment
-                setTimeout(function() {
-                    console.log('Simulating successful payment with transaction ID:', mockTransactionId);
-                    console.log('Payment method:', paymentMethod);
-                    console.log('Order number:', order_number);
-                    
-                    // Call sendTransaction with mock data for successful payment
-                    sendTransaction(mockTransactionId, paymentMethod, 'COMPLETED');
-                }, 1500); // 1.5 second delay to simulate processing
-            });
-            
-            console.log('✅ Manual payment button handler attached successfully');
-        } else {
-            console.error('❌ Manual payment button still not found after delay');
-            console.log('Available elements with IDs:', document.querySelectorAll('[id]'));
-        }
-        
-        // Add a test redirect button for debugging
-        const testRedirectBtn = document.createElement('button');
-        testRedirectBtn.innerHTML = '🔗 Test Redirect to Order Complete';
-        testRedirectBtn.className = 'btn btn-warning btn-sm ml-2';
-        testRedirectBtn.onclick = function() {
-            console.log('Testing redirect to order complete page...');
-            var testUrl = order_complete + '?order_no=' + order_number + '&trans_id=TEST_REDIRECT';
-            console.log('Test redirect URL:', testUrl);
-            window.location.href = testUrl;
-        };
-        
-        // Add a debug info panel
-        const debugPanel = document.createElement('div');
-        debugPanel.innerHTML = `
-            <div style="background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; margin: 20px 0; border-radius: 5px;">
-                <h5>🐛 Debug Information</h5>
-                <p><strong>Order Number:</strong> ${order_number}</p>
-                <p><strong>Order Complete URL:</strong> ${order_complete}</p>
-                <p><strong>Test Redirect URL:</strong> ${order_complete}?order_no=${order_number}&trans_id=TEST_REDIRECT</p>
-                <button onclick="window.location.href='${order_complete}?order_no=${order_number}&trans_id=TEST_REDIRECT'" 
-                        class="btn btn-success btn-sm">🎯 Test Redirect Now</button>
-            </div>
-        `;
-        
-        // Add the test button and debug panel to the page
-        const container = document.querySelector('.container');
-        if (container) {
-            container.appendChild(testRedirectBtn);
-            container.appendChild(debugPanel);
-        }
-    }, 2000); // Increased delay to ensure DOM is fully loaded
     
     // Check if PayPal payment method is selected
     console.log('Current payment method: {{ order.payment_method }}');
@@ -460,69 +271,6 @@
     // PayPal SDK disabled for testing - using manual payment button instead
     console.log('PayPal SDK integration commented out for testing');
 
-    /*
-    // Add a timeout to check if PayPal button rendered
-    setTimeout(function() {
-        const container = document.getElementById('paypal-button-container');
-        if (container && container.innerHTML.includes('Loading PayPal button')) {
-            console.error('PayPal button failed to render after 5 seconds');
-            container.innerHTML = '<p style="color:red; text-align: center;">PayPal button failed to load. Please check console for errors.</p>';
-        }
-    }, 5000);
-    */
-
-    // RazorPay Payment Gateway
-    var options = {
-            "key": "{{ RZP_KEY_ID }}", // Enter the Key ID generated from the Dashboard
-            "amount": "{{ rzp_amount }}", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
-            "currency": "INR",
-            "name": "FoodOnline",
-            "description": "FoodOnline - Multi Vendor Restaurant Marketplace",
-            "image": "{% static 'logo/foodOnlineLogo.png' %}",
-            "order_id": "{{ rzp_order_id }}", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
-            "handler": function (response){
-                // alert(response.razorpay_payment_id);
-                // alert(response.razorpay_order_id);
-                // alert(response.razorpay_signature)
-                // Replace the above to show a success message within this page, e.g.
-                const element = document.getElementById('rzp_payment_button');
-                element.innerHTML = '';
-                element.innerHTML = '<h4 class="text-center"><i class="fa fa-spinner fa-spin"></i> Processing payment...</h4>';
-
-                var transaction_id = response.razorpay_payment_id
-                var payment_method = 'RazorPay'
-                var status = 'COMPLETED' // changed from 'Success' to 'COMPLETED' for demo
-                sendTransaction(transaction_id, payment_method, status)
-            },
-            "prefill": {
-                "name": "{{ order.name }}",
-                "email": "{{ order.email }}",
-                "contact": "{{ order.phone }}"
-            },
-            "notes": {
-                "address": "{{ order.address }}"
-            },
-            "theme": {
-                "color": "#dc3545"
-            }
-        };
-        var rzp1 = new Razorpay(options);
-        rzp1.on('payment.failed', function (response){
-                alert(response.error.code);
-                alert(response.error.description);
-                alert(response.error.source);
-                alert(response.error.step);
-                alert(response.error.reason);
-                alert(response.error.metadata.order_id);
-                alert(response.error.metadata.payment_id);
-        });
-    document.getElementById('rzp-button1').onclick = function(e){
-        rzp1.open();
-        e.preventDefault();
-    }
-    // RazorPay Payment Gateway
-
-
     // Send the data to payments view to store in the database
     function sendTransaction(transaction_id, payment_method, status) {
         console.log('Starting sendTransaction with:', {
@@ -533,17 +281,17 @@
             url: url
         });
         
-    // Validate all required data
-    if (!transaction_id || !payment_method || !status || !order_number || !url) {
-        console.error('=== MISSING REQUIRED DATA ===');
-        console.error('transaction_id:', transaction_id);
-        console.error('payment_method:', payment_method);
-        console.error('status:', status);
-        console.error('order_number:', order_number);
-        console.error('url:', url);
-        swal("Payment Error", "Missing required payment data. Please try again.", "error");
-        return;
-    }        console.log('All validation passed, sending AJAX request...');
+        // Strengthened validation for all required fields
+        if (!transaction_id || !payment_method || !status || !order_number || !url) {
+            console.error('=== MISSING REQUIRED DATA ===');
+            console.error('transaction_id:', transaction_id);
+            console.error('payment_method:', payment_method);
+            console.error('status:', status);
+            console.error('order_number:', order_number);
+            console.error('url:', url);
+            swal("Payment Error", "Missing required payment data. Please try again.", "error");
+            return;
+        }
         
         $.ajax({
             type: 'POST',
@@ -584,8 +332,8 @@
                     return;
                 }
                 
-                // Check if we have a valid success response
-                if (response.success || response.order_number) {
+                // Only redirect if both response.success and response.order_number are present
+                if (response.success && response.order_number) {
                     console.log('Payment successful! Showing success message');
                     var redirectUrl = order_complete + '?order_no=' + response.order_number + '&trans_id=' + response.transaction_id;
                     console.log('Redirect URL will be:', redirectUrl);
@@ -606,7 +354,7 @@
                         console.log('SweetAlert failed, but redirect should have already happened');
                     });
                 } else {
-                    console.error('Unexpected response format:', response);
+                    console.error('Unexpected response format or missing order_number:', response);
                     swal("Payment Error", "Received unexpected response from server. Please contact support.", "error");
                     const element = document.getElementById('paypal-button-container');
                     if (element) {
@@ -649,5 +397,25 @@
             }
         });
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var completeBtn = document.getElementById('complete-payment-btn');
+      if (completeBtn) {
+        completeBtn.addEventListener('click', function() {
+          // Get selected payment method
+          var method = document.querySelector('input[name="payment_method"]:checked');
+          var paymentMethod = method ? method.value : 'Unknown';
+          // Generate a mock transaction ID
+          var transactionId = 'TXN_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+          if (!order_number || order_number === 'None' || order_number.trim() === '') {
+            swal('Payment Error', 'Order number is missing. Please try again.', 'error');
+            return;
+          }
+          // Call sendTransaction
+          sendTransaction(transactionId, paymentMethod, 'COMPLETED');
+        });
+      }
+    });
 </script>
 {% endblock %}
